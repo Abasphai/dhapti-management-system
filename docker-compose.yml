@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: dhapti-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: biu
+      POSTGRES_PASSWORD: biu_secure_pass
+      POSTGRES_DB: biu_university
+    volumes:
+      - dhapti_pg_data:/var/lib/postgresql/data
+
+volumes:
+  dhapti_pg_data:

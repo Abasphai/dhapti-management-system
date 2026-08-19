@@ -1,0 +1,637 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --portal-accent: #16a34a;
+
+    /* Dhapti Brand: Deep Navy Blue + Professional Orange */
+    --background: 210 40% 98%;
+    --foreground: 215 65% 16%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 65% 16%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 65% 16%;
+
+    --primary: 215 65% 16%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 24 96% 46%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 30% 94%;
+    /* Darker muted text for WCAG-friendly secondary copy on light surfaces */
+    --muted-foreground: 215 35% 28%;
+
+    --accent: 24 96% 95%;
+    --accent-foreground: 24 96% 35%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 25% 88%;
+    --input: 214 25% 88%;
+    --ring: 24 96% 46%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 215 65% 10%;
+    --foreground: 210 40% 98%;
+
+    --card: 215 55% 14%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 215 55% 14%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 24 96% 46%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 215 45% 25%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 40% 20%;
+    --muted-foreground: 210 30% 82%;
+
+    --accent: 215 40% 20%;
+    --accent-foreground: 24 96% 60%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 35% 22%;
+    --input: 215 35% 22%;
+    --ring: 24 96% 46%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold tracking-tight text-foreground;
+  }
+
+  label {
+    @apply font-semibold text-foreground;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  h4 {
+    @apply text-xl md:text-2xl;
+  }
+}
+
+@layer components {
+  /* Global Button Styles */
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-biu-navy-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md bg-secondary px-6 py-2.5 text-sm font-medium text-secondary-foreground shadow-sm transition-colors hover:bg-biu-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center rounded-md border border-primary bg-transparent px-6 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  /* Global Input Styles */
+  .input-field {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Global Card Styles */
+  .card-base {
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+  }
+
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6;
+  }
+
+  .card-content {
+    @apply p-6 pt-0;
+  }
+
+  .card-footer {
+    @apply flex items-center p-6 pt-0;
+  }
+
+  /* Section Layout Helpers */
+  .section-padding {
+    @apply py-16 md:py-20 lg:py-24;
+  }
+
+  .section-container {
+    @apply container mx-auto px-4 md:px-6;
+  }
+
+  /* Portal Dashboard Helpers */
+  .portal-sidebar-link {
+    @apply flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground;
+  }
+
+  .portal-sidebar-link-active {
+    @apply bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground;
+  }
+}
+
+/* Portal contrast — readable labels/tables on light + dark shells */
+.dashboard-shell {
+  color: #0f172a;
+}
+
+.dashboard-shell .text-muted-foreground,
+.dashboard-shell .text-slate-400,
+.dashboard-shell .text-slate-500,
+.dashboard-shell .text-gray-400,
+.dashboard-shell .text-gray-500 {
+  color: #1e293b !important;
+  font-weight: 600;
+}
+
+.dashboard-shell thead th,
+.dashboard-shell [class*="TableHead"] {
+  color: #002147 !important;
+  font-weight: 700 !important;
+}
+
+/* User Management — navy header row with light, high-contrast labels */
+.dashboard-shell .users-mgmt-table thead th,
+.dashboard-shell .users-mgmt-table [class*="TableHead"] {
+  color: #e2e8f0 !important;
+  font-weight: 900 !important;
+  background-color: rgb(0 33 71 / 0.8) !important;
+  border-bottom-color: rgb(51 65 85 / 0.5) !important;
+}
+
+.dark .dashboard-shell .users-mgmt-table thead th,
+.dark .dashboard-shell .users-mgmt-table [class*="TableHead"] {
+  color: #e2e8f0 !important;
+  background-color: rgb(30 41 59 / 0.8) !important;
+}
+
+.dashboard-shell .users-mgmt-table td.users-mgmt-id {
+  color: #002147 !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
+
+.dark .dashboard-shell .users-mgmt-table td.users-mgmt-id {
+  color: #e2e8f0 !important;
+}
+
+/* Student Course Results — navy headers stay light on dark banner rows */
+.dashboard-shell .results-transcript-table thead th,
+.dashboard-shell .results-transcript-table [class*="TableHead"] {
+  color: #e2e8f0 !important;
+  font-weight: 900 !important;
+  background-color: rgb(0 33 71 / 0.9) !important;
+}
+
+.dark .dashboard-shell .results-transcript-table thead th,
+.dark .dashboard-shell .results-transcript-table [class*="TableHead"] {
+  color: #e2e8f0 !important;
+  background-color: rgb(30 41 59 / 0.9) !important;
+}
+
+.dashboard-shell td,
+.dashboard-shell [class*="TableCell"] {
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.dashboard-shell input,
+.dashboard-shell textarea,
+.dashboard-shell select {
+  color: #002147;
+  font-weight: 600;
+}
+
+.dashboard-shell input::placeholder,
+.dashboard-shell textarea::placeholder {
+  color: #475569 !important;
+  opacity: 1 !important;
+  font-weight: 500;
+}
+
+.dashboard-shell label,
+.dashboard-shell .card-header h2,
+.dashboard-shell .card-header h3 {
+  color: #002147;
+  font-weight: 700;
+}
+
+/* Light modals/dialogs — high-contrast copy even when opened from dark shell */
+[role="dialog"],
+[data-radix-dialog-content] {
+  color: #002147;
+}
+
+[role="dialog"] label,
+[data-radix-dialog-content] label {
+  color: #002147 !important;
+  font-weight: 700;
+}
+
+[role="dialog"] input,
+[role="dialog"] textarea,
+[data-radix-dialog-content] input,
+[data-radix-dialog-content] textarea {
+  color: #002147 !important;
+  font-weight: 600;
+}
+
+[role="dialog"] input::placeholder,
+[role="dialog"] textarea::placeholder,
+[data-radix-dialog-content] input::placeholder,
+[data-radix-dialog-content] textarea::placeholder {
+  color: #475569 !important;
+  opacity: 1 !important;
+}
+
+.dark .dashboard-shell {
+  color: #e2e8f0;
+}
+
+.dark .dashboard-shell .text-muted-foreground,
+.dark .dashboard-shell .text-slate-400,
+.dark .dashboard-shell .text-slate-500,
+.dark .dashboard-shell .text-gray-400,
+.dark .dashboard-shell .text-gray-500 {
+  color: #e2e8f0 !important;
+  font-weight: 600;
+}
+
+.dark .dashboard-shell thead th,
+.dark .dashboard-shell [class*="TableHead"],
+.dark .dashboard-shell label,
+.dark .dashboard-shell .card-header h2,
+.dark .dashboard-shell .card-header h3 {
+  color: #ffffff !important;
+}
+
+.dark .dashboard-shell td,
+.dark .dashboard-shell [class*="TableCell"] {
+  color: #f1f5f9;
+}
+
+.dark .dashboard-shell input,
+.dark .dashboard-shell textarea,
+.dark .dashboard-shell select {
+  color: #f8fafc;
+}
+
+.dark .dashboard-shell input::placeholder,
+.dark .dashboard-shell textarea::placeholder {
+  color: #cbd5e1 !important;
+}
+
+/* Light check-in / makeup card — keep navy labels readable on white even in dark shell */
+.dashboard-shell .attendance-checkin-card,
+.dark .dashboard-shell .attendance-checkin-card {
+  color: #002147 !important;
+  background-color: #ffffff !important;
+  background-image: linear-gradient(to bottom right, #f0fdf4, #ffffff) !important;
+}
+
+.dashboard-shell .attendance-checkin-card .text-\[\#002147\],
+.dark .dashboard-shell .attendance-checkin-card .text-\[\#002147\] {
+  color: #002147 !important;
+}
+
+.dashboard-shell .attendance-checkin-card .text-slate-600,
+.dark .dashboard-shell .attendance-checkin-card .text-slate-600,
+.dashboard-shell .attendance-checkin-card .text-muted-foreground,
+.dark .dashboard-shell .attendance-checkin-card .text-muted-foreground {
+  color: #475569 !important;
+  font-weight: 500 !important;
+}
+
+.dashboard-shell .attendance-checkin-card label,
+.dark .dashboard-shell .attendance-checkin-card label,
+.dashboard-shell .attendance-checkin-card [class*="CardTitle"],
+.dark .dashboard-shell .attendance-checkin-card [class*="CardTitle"] {
+  color: #002147 !important;
+}
+
+.dashboard-shell .attendance-checkin-card button[data-state],
+.dark .dashboard-shell .attendance-checkin-card button[data-state] {
+  color: #002147 !important;
+  background-color: #ffffff !important;
+}
+
+/* Scoped dark adaptations for hardcoded portal page colors */
+.dark .dashboard-shell .text-\[\#002147\] {
+  color: rgb(241 245 249) !important;
+}
+
+.dark .dashboard-shell .bg-\[\#F4F7FB\] {
+  background-color: rgb(15 23 42) !important;
+}
+
+.dark .dashboard-shell .border-\[\#E5EBF3\] {
+  border-color: rgb(51 65 85) !important;
+}
+
+.dark .dashboard-shell .bg-white {
+  background-color: hsl(var(--card)) !important;
+}
+
+.dark .dashboard-shell .bg-\[\#FAFBFD\] {
+  background-color: rgb(15 23 42 / 0.6) !important;
+}
+
+.dark .dashboard-shell .hover\:bg-\[\#F4F7FB\]:hover {
+  background-color: rgb(30 41 59) !important;
+}
+
+/* Assignment modals — lock high contrast on white dialog surfaces */
+.assignment-dropzone-label {
+  color: #002147 !important;
+  font-weight: 700 !important;
+}
+
+.assignment-modal-input {
+  background-color: #ffffff !important;
+  color: #002147 !important;
+  font-weight: 700 !important;
+  border-color: #e2e8f0 !important;
+  border-radius: 0.75rem !important;
+}
+
+.assignment-modal-input::placeholder {
+  color: #94a3b8 !important;
+  font-weight: 500 !important;
+  opacity: 1 !important;
+}
+
+.assignment-modal-datetime {
+  color-scheme: light;
+}
+
+.assignment-modal-datetime::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+  filter: invert(45%) sepia(8%) saturate(500%) hue-rotate(176deg);
+}
+
+/* Profile form fields — lock contrast inside portal dark-mode overrides */
+.dashboard-shell .profile-field-readonly {
+  background-color: rgb(241 245 249 / 0.9) !important;
+  border-color: #e2e8f0 !important;
+  color: #002147 !important;
+  opacity: 1 !important;
+}
+
+.dark .dashboard-shell .profile-field-readonly {
+  background-color: rgb(15 23 42 / 0.85) !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+.dashboard-shell .profile-field-editable {
+  background-color: #ffffff !important;
+  color: #002147 !important;
+}
+
+.dark .dashboard-shell .profile-field-editable {
+  background-color: rgb(15 23 42 / 0.85) !important;
+  border-color: #475569 !important;
+  color: #ffffff !important;
+}
+
+/* Digital ID Card — lock contrast inside portal dark-mode overrides */
+.dashboard-shell .id-card-front,
+.dashboard-shell .id-card-front .bg-white {
+  background-color: #ffffff !important;
+}
+
+.dashboard-shell .id-card-front .id-card-name,
+.dashboard-shell .id-card-front .id-card-value {
+  color: #002147 !important;
+}
+
+.dashboard-shell .id-card-front .id-card-label {
+  color: #64748b !important;
+}
+
+.dashboard-shell .id-card-front .id-card-hint {
+  color: #475569 !important;
+}
+
+.dashboard-shell .id-card-back {
+  background-color: #002147 !important;
+  border-color: #001a38 !important;
+}
+
+.dashboard-shell .id-card-back,
+.dashboard-shell .id-card-back p,
+.dashboard-shell .id-card-back li,
+.dashboard-shell .id-card-back h3 {
+  color: #e2e8f0 !important;
+}
+
+.dashboard-shell .id-card-back h3,
+.dashboard-shell .id-card-back .text-white {
+  color: #ffffff !important;
+}
+
+/* Official Academic Transcript — force visible column headers inside portal shell */
+.dashboard-shell .official-transcript-root thead th,
+.official-transcript-root thead th {
+  background-color: rgb(0 33 71 / 0.8) !important;
+  color: #e2e8f0 !important;
+  font-weight: 900 !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  border-bottom: 1px solid rgb(51 65 85 / 0.5) !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.dark .dashboard-shell .official-transcript-root thead th,
+.dark .official-transcript-root thead th {
+  background-color: rgb(0 33 71 / 0.9) !important;
+  color: #e2e8f0 !important;
+}
+
+.dashboard-shell .official-transcript-root .transcript-subtotal td,
+.official-transcript-root .transcript-subtotal td {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+.dashboard-shell .official-transcript-root .transcript-subtotal .highlight-green,
+.official-transcript-root .transcript-subtotal .highlight-green {
+  color: #4ade80 !important;
+}
+
+.dashboard-shell .official-transcript-root .transcript-subtotal .highlight-gold,
+.official-transcript-root .transcript-subtotal .highlight-gold {
+  color: #fbbf24 !important;
+}
+
+/* Official Academic Transcript — print / Save as PDF */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .official-transcript-root,
+  .official-transcript-root * {
+    visibility: visible !important;
+  }
+
+  .official-transcript-root {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: white !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .official-transcript-root table {
+    break-inside: auto;
+  }
+
+  .official-transcript-root tr,
+  .official-transcript-root section {
+    break-inside: avoid;
+  }
+
+  .official-transcript-root thead th {
+    background-color: #002147 !important;
+    color: #e2e8f0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .official-transcript-root .transcript-subtotal td {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* Digital ID Card — print only the card faces */
+@media print {
+  .print-id-root,
+  .print-id-root * {
+    visibility: visible !important;
+  }
+
+  .print-id-root {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 16px !important;
+    padding: 12px !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .id-card-face {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+
+  .id-card-front {
+    background: #ffffff !important;
+    border: 1px solid #002147 !important;
+  }
+
+  .id-card-front .id-card-name,
+  .id-card-front .id-card-value {
+    color: #000000 !important;
+    font-weight: 800 !important;
+  }
+
+  .id-card-front .id-card-label,
+  .id-card-front .id-card-hint {
+    color: #1e293b !important;
+  }
+
+  .id-card-back {
+    background: #002147 !important;
+    color: #f8fafc !important;
+  }
+
+  .id-card-back p,
+  .id-card-back li,
+  .id-card-back h3 {
+    color: #f8fafc !important;
+  }
+}
+
+/* TipTap CMS editor */
+.tiptap p.is-editor-empty:first-child::before {
+  color: #94a3b8;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.cms-prose ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.cms-prose ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+
+.cms-prose a {
+  color: #ea580c;
+  text-decoration: underline;
+}

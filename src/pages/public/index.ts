@@ -1,0 +1,14 @@
+export { HomePage } from "./HomePage";
+export { AboutPage } from "./AboutPage";
+export { AcademicsPage } from "./AcademicsPage";
+export { AdmissionsPage } from "./AdmissionsPage";
+export { AuthorityPage } from "./AuthorityPage";
+export { CampusLifePage } from "./CampusLifePage";
+export { ContactPage } from "./ContactPage";
+export { FacultiesPage } from "./FacultiesPage";
+export { NewsPage } from "./NewsPage";
+export { VerifyCertificatePage } from "./VerifyCertificatePage";
+export { ProgramsPage } from "./ProgramsPage";
+export { ResearchPage } from "./ResearchPage";
+export { CustomCmsPage } from "./CustomCmsPage";
+export { AttendanceQrDisplayPage } from "./AttendanceQrDisplayPage";

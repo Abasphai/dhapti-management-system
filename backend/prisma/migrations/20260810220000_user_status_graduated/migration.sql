@@ -1,0 +1,2 @@
+-- UserStatus.GRADUATED added in Prisma schema.
+-- SQLite stores enums as TEXT; no table rewrite required.
