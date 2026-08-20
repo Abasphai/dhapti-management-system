@@ -45,6 +45,9 @@ export function createApp() {
   const app = express();
 
   const defaultOrigins = [
+    "https://dhapti.com",
+    "https://www.dhapti.com",
+    "https://dhapti-university-77po.vercel.app",
     "http://localhost:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5173",

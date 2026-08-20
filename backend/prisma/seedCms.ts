@@ -21,6 +21,12 @@ const FACULTY_HERO: Record<string, string> = {
     "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=1200&auto=format&fit=crop",
 };
 
+const CDN_SLIDES = [
+  "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=1920&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1920&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=1920&auto=format&fit=crop",
+] as const;
+
 function p(text: string) {
   return `<p>${text}</p>`;
 }
@@ -41,7 +47,7 @@ export async function seedCmsContent(prisma: PrismaClient) {
       excerpt:
         "Advanced computing and medical testing facilities now open on the main campus.",
       body: [
-        `<p><img src="/images/slide1.jpg" alt="Dhapti Science &amp; Research Laboratory" /></p>`,
+        `<p><img src="${CDN_SLIDES[0]}" alt="Dhapti Science &amp; Research Laboratory" /></p>`,
         p(
           "Dhapti University has officially inaugurated its new research lab equipped with advanced computing and medical testing facilities. The facility strengthens hands-on learning for Computing &amp; IT and Medicine students and expands Dhapti’s capacity for applied research across Bay Region."
         ),
@@ -57,7 +63,7 @@ export async function seedCmsContent(prisma: PrismaClient) {
       excerpt:
         "Applications are open for undergraduate and diploma programmes across all six faculties.",
       body: [
-        `<p><img src="/images/slide2.jpg" alt="Dhapti Admissions 2026/2027" /></p>`,
+        `<p><img src="${CDN_SLIDES[1]}" alt="Dhapti Admissions 2026/2027" /></p>`,
         p(
           "Applications are now being accepted for all 6 faculties across undergraduate and diploma programs. Prospective students can apply online through the Dhapti admissions portal and track application status in real time."
         ),
@@ -73,7 +79,7 @@ export async function seedCmsContent(prisma: PrismaClient) {
       excerpt:
         "Students showcased software engineering and AI projects at Dhapti’s annual symposium.",
       body: [
-        `<p><img src="/images/slide3.jpg" alt="Innovation &amp; Tech Symposium 2026" /></p>`,
+        `<p><img src="${CDN_SLIDES[2]}" alt="Innovation &amp; Tech Symposium 2026" /></p>`,
         p(
           "Dhapti students presented cutting-edge software engineering and AI projects during the annual symposium. Judges from academia and industry recognised outstanding work in digital health, smart agriculture, and civic technology."
         ),
@@ -699,7 +705,7 @@ startxref
             body: "Contact the Dhapti Admissions Help Desk for personalised guidance.",
             ctaLabel: "Contact Admissions",
             ctaHref: "/contact",
-            backgroundImageUrl: "/images/slide2.jpg",
+            backgroundImageUrl: CDN_SLIDES[1],
             backgroundMediaId: null,
             i18n: {},
           },
