@@ -600,7 +600,7 @@ cmsAdminRouter.get(
     const rows = await prisma.cmsNewsPost.findMany({
       orderBy: { updatedAt: "desc" },
     });
-    return res.json({ data: rows.map(serializeNews) });
+    return res.json({ data: rows.map((post) => serializeNews(post)) });
   }
 );
 
@@ -808,7 +808,7 @@ cmsAdminRouter.get(
     const rows = await prisma.cmsEvent.findMany({
       orderBy: { startsAt: "desc" },
     });
-    return res.json({ data: rows.map(serializeEvent) });
+    return res.json({ data: rows.map((event) => serializeEvent(event)) });
   }
 );
 

@@ -1,5 +1,5 @@
 import { Prisma, type Role, type UserStatus } from "@prisma/client";
-import { Router } from "express";
+import { Router, type Response } from "express";
 import { z } from "zod";
 
 import { hashPassword } from "../lib/auth.js";
@@ -148,7 +148,7 @@ async function assertFacultyDepartment(opts: {
 usersRouter.get(
   "/",
   requirePermission(Permission.USERS_READ),
-  async (req, res) => {
+  async (req: AuthedRequest, res: Response) => {
     const { page, pageSize, skip, take } = parsePagination(req.query);
     const q = String(req.query.q ?? "").trim();
     const role = String(req.query.role ?? "").trim().toUpperCase();
@@ -204,7 +204,7 @@ usersRouter.get(
 usersRouter.post(
   "/",
   requirePermission(Permission.USERS_MANAGE),
-  async (req, res) => {
+  async (req: AuthedRequest, res: Response) => {
     const schema = z.object({
       fullName: z.string().min(2),
       email: z.string().email(),
@@ -326,7 +326,7 @@ usersRouter.post(
 usersRouter.patch(
   "/:id",
   requirePermission(Permission.USERS_MANAGE),
-  async (req, res) => {
+  async (req: AuthedRequest, res: Response) => {
     const schema = z.object({
       fullName: z.string().min(2).optional(),
       email: z.string().email().optional(),
@@ -444,7 +444,7 @@ usersRouter.patch(
 usersRouter.patch(
   "/:id/reset-password",
   requirePermission(Permission.USERS_MANAGE),
-  async (req, res) => {
+  async (req: AuthedRequest, res: Response) => {
     const schema = z.object({
       password: z.string().min(6),
     });
@@ -486,7 +486,7 @@ usersRouter.patch(
 usersRouter.patch(
   "/:id/status",
   requirePermission(Permission.USERS_MANAGE),
-  async (req: AuthedRequest, res) => {
+  async (req: AuthedRequest, res: Response) => {
     const schema = z.object({
       status: z.enum(["ACTIVE", "SUSPENDED", "INACTIVE", "GRADUATED"]).optional(),
     });

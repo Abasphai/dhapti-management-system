@@ -46,7 +46,7 @@ analyticsRouter.get(
       return res.json(data);
     } catch (err) {
       console.error("[analytics/overview]", err);
-      return sendError(res, 500, "INTERNAL", "Failed to build analytics overview");
+      return sendError(res, 500, "INTERNAL_ERROR", "Failed to build analytics overview");
     }
   }
 );
