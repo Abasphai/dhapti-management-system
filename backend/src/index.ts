@@ -9,7 +9,8 @@ import { ensureDemoAccounts } from "./lib/ensureDemoAccounts.js";
 getJwtSecret();
 
 const app = createApp();
-const PORT = Number(process.env.PORT || 4000);
+const PORT = Number(process.env.PORT) || 4000;
+const HOST = "0.0.0.0";
 
 void (async () => {
   try {
@@ -35,7 +36,7 @@ void (async () => {
   }
 })();
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Dhapti API listening on http://localhost:${PORT}`);
-  console.log(`Health: http://127.0.0.1:${PORT}/api/health`);
+app.listen(PORT, HOST, () => {
+  console.log(`Dhapti API listening on http://${HOST}:${PORT}`);
+  console.log(`Health: http://${HOST}:${PORT}/api/health`);
 });
