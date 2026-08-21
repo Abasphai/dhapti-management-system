@@ -690,8 +690,8 @@ export function AdminClassesPage() {
           </p>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="w-full overflow-x-hidden">
-          <Table className="w-full table-fixed">
+          <div className="table-scroll">
+          <Table className="w-full min-w-[720px]">
             <TableHeader>
               <TableRow className="border-b border-slate-200 bg-slate-100 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/80 dark:hover:bg-slate-800/80">
                 <TableHead className={`w-[22%] ${thClass}`}>Course</TableHead>
@@ -1197,7 +1197,7 @@ export function AdminClassesPage() {
                   </p>
                 )}
               </Field>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field label="Section">
                   <Input
                     value={form.section}
@@ -1264,7 +1264,7 @@ export function AdminClassesPage() {
                   placeholder="Mon / Wed"
                 />
               </Field>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field label="Start">
                   <Input
                     value={form.startTime}

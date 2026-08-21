@@ -12,6 +12,7 @@ import { useTheme } from '@/context/ThemeContext';
 export const Navbar = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -50,54 +51,58 @@ export const Navbar = () => {
     ],
   };
 
+  const closeMobile = () => {
+    setIsMobileOpen(false);
+    setMobileExpanded(null);
+  };
+
   return (
-    <header className="fixed top-0 left-0 w-full z-[1000] font-sans shadow-md">
+    <header className="fixed top-0 left-0 z-[1000] w-full max-w-full overflow-x-hidden font-sans shadow-md">
       {/* 1. TOP BAR (DARK NAVY WITH GREEN ICONS) */}
-      <div className="bg-[#00152e] text-white py-2 px-4 md:px-12 flex justify-between items-center text-[10px] md:text-xs font-bold border-b border-white/10 uppercase tracking-wider">
-        <div className="flex items-center gap-2">
-          <Home size={14} className="text-emerald-400 shrink-0" />
+      <div className="flex items-center justify-between border-b border-white/10 bg-[#00152e] px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white sm:px-6 md:px-12 md:text-xs">
+        <div className="flex min-w-0 items-center gap-2">
+          <Home size={14} className="shrink-0 text-emerald-400" />
           <span className="truncate">DHAPTI UNIVERSITY</span>
         </div>
 
-        <div className="flex items-center gap-4 md:gap-6">
-          <Link to="/student/login" className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors">
+        <div className="flex shrink-0 items-center gap-3 sm:gap-4 md:gap-6">
+          <Link to="/student/login" className="flex items-center gap-1.5 transition-colors hover:text-emerald-400">
             <User size={14} className="text-emerald-400" />
             <span className="hidden sm:inline">STUDENT PORTAL</span>
           </Link>
-          <Link to="/teacher/login" className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors">
+          <Link to="/teacher/login" className="flex items-center gap-1.5 transition-colors hover:text-emerald-400">
             <Briefcase size={14} className="text-emerald-400" />
             <span className="hidden sm:inline">TEACHER PORTAL</span>
           </Link>
-          <Link to="/admin/login" className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors">
+          <Link to="/admin/login" className="flex items-center gap-1.5 transition-colors hover:text-emerald-400">
             <Shield size={14} className="text-emerald-400" />
             <span className="hidden sm:inline">ADMIN PORTAL</span>
           </Link>
-          <div className="hidden lg:flex items-center gap-1.5 border-l border-white/20 pl-4">
+          <div className="hidden items-center gap-1.5 border-l border-white/20 pl-4 lg:flex">
             <Phone size={14} className="text-emerald-400" />
             <span>+252 61 700 1000</span>
           </div>
         </div>
       </div>
 
-      {/* 2. MAIN NAVBAR (CLEAN WHITE BACKGROUND WITH GREEN ACCENT STRIPE) */}
-      <div className="bg-white text-[#002147] py-3 px-4 md:px-12 flex justify-between items-center border-b-[3px] border-[#16a34a] relative">
-        {/* LOGO (DHAPTI LOGO) */}
-        <Link to="/" className="flex items-center gap-3 shrink-0 mr-4">
+      {/* 2. MAIN NAVBAR */}
+      <div className="relative flex items-center justify-between border-b-[3px] border-[#16a34a] bg-white px-4 py-3 text-[#002147] sm:px-6 md:px-12">
+        <Link to="/" className="mr-2 flex shrink-0 items-center gap-3 sm:mr-4">
           <img
             src="/dhapti-logo.png"
             alt="Dhapti Logo"
-            className="h-12 md:h-14 w-auto object-contain"
+            className="h-12 w-auto object-contain md:h-14"
           />
         </Link>
 
         {/* DESKTOP NAV LINKS */}
-        <nav className="hidden xl:flex items-center gap-6 lg:gap-7 mr-6 font-extrabold text-[13px] tracking-wide text-[#002147]">
-          <Link to="/" className="hover:text-[#16a34a] transition-colors">HOME</Link>
+        <nav className="mr-6 hidden items-center gap-6 text-[13px] font-extrabold tracking-wide text-[#002147] xl:flex lg:gap-7">
+          <Link to="/" className="transition-colors hover:text-[#16a34a]">HOME</Link>
 
           {Object.keys(menuData).map((menuKey) => (
             <div 
               key={menuKey}
-              className="relative py-2 cursor-pointer group"
+              className="group relative cursor-pointer py-2"
               onMouseEnter={() => setActiveMenu(menuKey)}
               onMouseLeave={() => setActiveMenu(null)}
             >
@@ -106,7 +111,6 @@ export const Navbar = () => {
                 <ChevronDown size={14} className={`transition-transform duration-200 ${activeMenu === menuKey ? 'rotate-180 text-[#16a34a]' : ''}`} />
               </div>
 
-              {/* DROPDOWN MENU */}
               <AnimatePresence>
                 {activeMenu === menuKey && (
                   <motion.div
@@ -114,13 +118,13 @@ export const Navbar = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute left-0 top-full mt-2 w-64 bg-white border-t-[3px] border-[#16a34a] rounded-b-xl shadow-2xl py-2 z-50"
+                    className="absolute left-0 top-full z-50 mt-2 w-64 rounded-b-xl border-t-[3px] border-[#16a34a] bg-white py-2 shadow-2xl"
                   >
                     {menuData[menuKey].map((item, idx) => (
                       <Link
                         key={idx}
                         to={item.href}
-                        className="block px-5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-[#16a34a] transition-colors"
+                        className="block px-5 py-2.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#16a34a]"
                       >
                         {item.label}
                       </Link>
@@ -131,11 +135,10 @@ export const Navbar = () => {
             </div>
           ))}
 
-          <Link to="/contact" className="hover:text-[#16a34a] transition-colors">CONTACT</Link>
+          <Link to="/contact" className="transition-colors hover:text-[#16a34a]">CONTACT</Link>
         </nav>
 
-        {/* RIGHT ACTIONS: GEAR, MOON, APPLY NOW */}
-        <div className="flex items-center gap-3 md:gap-4 pl-4 border-l border-slate-200/60">
+        <div className="flex items-center gap-2 border-l border-slate-200/60 pl-3 sm:gap-3 md:gap-4 md:pl-4">
           <LayoutSettingsPopover
             publicSite
             triggerClassName="p-2 rounded-xl text-slate-700 hover:text-[#16a34a] hover:bg-slate-100 transition-colors dark:text-slate-200 dark:hover:bg-slate-800"
@@ -144,7 +147,7 @@ export const Navbar = () => {
           <button 
             type="button"
             onClick={toggleTheme}
-            className="p-2 rounded-xl text-slate-700 hover:text-[#16a34a] hover:bg-slate-100 transition-colors dark:text-slate-200 dark:hover:bg-slate-800"
+            className="rounded-xl p-2 text-slate-700 transition-colors hover:bg-slate-100 hover:text-[#16a34a] dark:text-slate-200 dark:hover:bg-slate-800"
             title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
@@ -153,15 +156,17 @@ export const Navbar = () => {
 
           <Link 
             to="/admissions"
-            className="bg-[#16a34a] hover:bg-[#15803d] text-white px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95"
+            className="hidden rounded-xl bg-[#16a34a] px-4 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-md transition-all hover:bg-[#15803d] active:scale-95 sm:inline-flex sm:px-6"
           >
             APPLY NOW
           </Link>
 
-          {/* MOBILE TOGGLE */}
           <button 
+            type="button"
             onClick={() => setIsMobileOpen(!isMobileOpen)}
-            className="xl:hidden p-2 text-[#002147] hover:bg-slate-100 rounded-xl"
+            className="rounded-xl p-2 text-[#002147] hover:bg-slate-100 xl:hidden"
+            aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMobileOpen}
           >
             {isMobileOpen ? <X size={26} /> : <Menu size={26} />}
           </button>
@@ -169,16 +174,93 @@ export const Navbar = () => {
       </div>
 
       {/* MOBILE DRAWER */}
-      {isMobileOpen && (
-        <div className="xl:hidden bg-[#00152e] text-white p-6 flex flex-col gap-3 font-bold text-sm border-b border-white/10 shadow-2xl">
-          <Link to="/" onClick={() => setIsMobileOpen(false)}>HOME</Link>
-          <Link to="/about" onClick={() => setIsMobileOpen(false)}>ABOUT</Link>
-          <Link to="/faculties" onClick={() => setIsMobileOpen(false)}>FACULTIES & PROGRAMS</Link>
-          <Link to="/admissions" onClick={() => setIsMobileOpen(false)}>ADMISSIONS</Link>
-          <Link to="/news" onClick={() => setIsMobileOpen(false)}>NEWS & EVENTS</Link>
-          <Link to="/contact" onClick={() => setIsMobileOpen(false)}>CONTACT</Link>
-        </div>
-      )}
+      <AnimatePresence>
+        {isMobileOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="max-h-[min(70vh,560px)] overflow-y-auto border-b border-white/10 bg-[#00152e] text-white shadow-2xl xl:hidden"
+          >
+            <nav className="flex flex-col gap-1 p-4 sm:p-6">
+              <Link
+                to="/"
+                onClick={closeMobile}
+                className="rounded-xl px-3 py-3 text-sm font-bold uppercase tracking-wide transition-colors hover:bg-white/10"
+              >
+                Home
+              </Link>
+              <Link
+                to="/admissions"
+                onClick={closeMobile}
+                className="rounded-xl px-3 py-3 text-sm font-bold uppercase tracking-wide transition-colors hover:bg-white/10"
+              >
+                Admissions
+              </Link>
+
+              {Object.keys(menuData).map((menuKey) => {
+                const open = mobileExpanded === menuKey;
+                return (
+                  <div key={menuKey} className="border-t border-white/10 pt-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setMobileExpanded(open ? null : menuKey)
+                      }
+                      className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm font-bold uppercase tracking-wide transition-colors hover:bg-white/10"
+                      aria-expanded={open}
+                    >
+                      <span>{menuKey}</span>
+                      <ChevronDown
+                        size={16}
+                        className={`shrink-0 transition-transform ${open ? 'rotate-180 text-emerald-400' : ''}`}
+                      />
+                    </button>
+                    <AnimatePresence>
+                      {open && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden pb-2 pl-2"
+                        >
+                          {menuData[menuKey].map((item) => (
+                            <Link
+                              key={item.href + item.label}
+                              to={item.href}
+                              onClick={closeMobile}
+                              className="block rounded-lg px-3 py-2.5 text-xs font-semibold text-slate-200 transition-colors hover:bg-white/10 hover:text-emerald-400"
+                            >
+                              {item.label}
+                            </Link>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+
+              <Link
+                to="/contact"
+                onClick={closeMobile}
+                className="mt-1 rounded-xl border-t border-white/10 px-3 py-3 text-sm font-bold uppercase tracking-wide transition-colors hover:bg-white/10"
+              >
+                Contact
+              </Link>
+
+              <Link
+                to="/admissions"
+                onClick={closeMobile}
+                className="mt-2 flex items-center justify-center rounded-xl bg-[#16a34a] px-4 py-3 text-xs font-black uppercase tracking-wider text-white sm:hidden"
+              >
+                Apply Now
+              </Link>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

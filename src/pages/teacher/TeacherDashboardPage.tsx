@@ -183,7 +183,7 @@ export function TeacherDashboardPage() {
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
         {cards.map((stat, index) => (
           <motion.div
             key={stat.title}
@@ -247,7 +247,7 @@ export function TeacherDashboardPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="overflow-x-auto">
+                <div className="table-scroll border-0">
                   <table className="w-full min-w-[480px] text-left text-sm">
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-100 text-xs font-black uppercase tracking-wider text-[#002147] dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">

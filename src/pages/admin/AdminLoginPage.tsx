@@ -37,8 +37,8 @@ export function AdminLoginPage() {
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [current, setCurrent] = useState(0);
-  const [email, setEmail] = useState("admin@dhapti.edu.so");
-  const [password, setPassword] = useState("DHAPTI@2026");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -186,6 +186,7 @@ export function AdminLoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="off"
                   className="w-full rounded-2xl border border-white/10 bg-black/60 py-3.5 pl-12 pr-4 text-sm font-bold text-white transition-all placeholder:text-slate-300 focus:border-[#ea580c]/50 focus:outline-none focus:ring-2 focus:ring-[#ea580c]/10"
                   placeholder="admin@dhapti.edu.so"
                   required
@@ -206,6 +207,7 @@ export function AdminLoginPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
                   className="w-full rounded-2xl border border-white/10 bg-black/60 py-3.5 pl-12 pr-12 text-sm font-bold text-white transition-all placeholder:text-slate-300 focus:border-[#ea580c]/50 focus:outline-none focus:ring-2 focus:ring-[#ea580c]/10"
                   placeholder="••••••••••••"
                   required

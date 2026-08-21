@@ -226,8 +226,8 @@ export function AdminAttendanceLocationsPage() {
               Loading locations…
             </div>
           ) : (
-            <div className="w-full overflow-x-hidden">
-              <Table className="w-full table-fixed">
+            <div className="table-scroll">
+              <Table className="w-full min-w-[720px]">
                 <TableHeader>
                   <TableRow className="border-b border-slate-700/50 bg-[#002147]/80 hover:bg-[#002147]/80">
                     <TableHead className="w-[18%] px-3 text-xs font-black uppercase tracking-wider text-slate-200">
@@ -380,7 +380,7 @@ export function AdminAttendanceLocationsPage() {
                 }
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <Label className="font-bold text-[#002147]">Code</Label>
                 <Input

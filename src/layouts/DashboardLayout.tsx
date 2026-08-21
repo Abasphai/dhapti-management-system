@@ -1031,7 +1031,7 @@ export function DashboardLayout({
           </div>
         </header>
 
-        <main className="flex-1 overflow-x-hidden p-4 md:p-6 lg:p-8">
+        <main className="min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8">
           <div
             className={cn(
               contentWidth === "Centered" && "mx-auto w-full max-w-6xl",

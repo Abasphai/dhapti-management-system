@@ -875,8 +875,8 @@ export function AdminSettingsPage() {
                 </Button>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="w-full overflow-x-hidden">
-                  <Table className="w-full table-fixed">
+                <div className="table-scroll">
+                  <Table className="w-full min-w-[720px]">
                     <TableHeader>
                       <TableRow className="border-b border-slate-700/50 bg-[#002147]/80 hover:bg-[#002147]/80">
                         <TableHead className="w-[22%] px-3 text-xs font-black uppercase tracking-wider text-slate-200">

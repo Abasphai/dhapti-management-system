@@ -697,8 +697,8 @@ export function AdminEnrollmentsPage() {
           </p>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="w-full overflow-x-hidden">
-            <Table className="w-full table-fixed">
+          <div className="table-scroll">
+            <Table className="w-full min-w-[720px]">
               <TableHeader>
                 <TableRow className="border-b border-slate-200 bg-slate-100 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/80 dark:hover:bg-slate-800/80">
                   <TableHead className={`w-[118px] whitespace-nowrap ${thClass}`}>

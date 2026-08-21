@@ -122,7 +122,7 @@ export const HeroSection = ({
 
   return (
     <div
-      className="relative mt-[100px] flex min-h-[calc(100vh-100px)] w-full items-center justify-center overflow-hidden bg-black font-sans"
+      className="relative mt-[100px] flex min-h-[calc(100vh-100px)] w-full max-w-full items-center justify-center overflow-hidden bg-black font-sans"
       dir={dir}
     >
       <AnimatePresence mode="wait">
@@ -139,13 +139,18 @@ export const HeroSection = ({
             src={resolveSlideImage(heroSlide, current)}
             alt={slide.title || "Dhapti Slide"}
             referrerPolicy="no-referrer"
+            decoding="async"
+            loading={current === 0 ? "eager" : "lazy"}
             className={cn(
               "h-full w-full object-cover transition-transform duration-[2500ms]",
               slide.pos || "object-top"
             )}
             onError={(e) => {
               const img = e.target as HTMLImageElement;
-              img.src = slideImageOnErrorSrc(img.src, current);
+              const next = slideImageOnErrorSrc(img.src, current);
+              if (img.src !== next) {
+                img.src = next;
+              }
             }}
           />
         </motion.div>
@@ -156,17 +161,16 @@ export const HeroSection = ({
           <motion.div
             key={`box-${current}`}
             initial={{
-              x: current % 2 === 0 ? -200 : 200,
+              x: current % 2 === 0 ? -48 : 48,
               opacity: 0,
-              rotateY: current % 2 === 0 ? -10 : 10,
             }}
-            animate={{ x: 0, opacity: 1, rotateY: 0 }}
+            animate={{ x: 0, opacity: 1 }}
             exit={{
-              x: current % 2 === 0 ? 200 : -200,
+              x: current % 2 === 0 ? 48 : -48,
               opacity: 0,
             }}
-            transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-3xl rounded-[45px] border border-white/10 bg-black/30 p-8 text-center shadow-[0_25px_80px_rgba(0,0,0,0.5)] backdrop-blur-md md:p-14"
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full max-w-3xl rounded-[28px] border border-white/10 bg-black/30 p-5 text-center shadow-[0_25px_80px_rgba(0,0,0,0.5)] backdrop-blur-md sm:rounded-[45px] sm:p-8 md:p-14"
           >
             <motion.div
               variants={containerVariants}
@@ -175,15 +179,15 @@ export const HeroSection = ({
             >
               <motion.div
                 variants={itemVariants}
-                className="mb-6 flex justify-center"
+                className="mb-4 flex justify-center sm:mb-6"
                 style={{ color: "var(--portal-accent)" }}
               >
-                <GraduationCap size={40} className="animate-bounce" />
+                <GraduationCap size={36} className="animate-bounce sm:h-10 sm:w-10" />
               </motion.div>
 
               <motion.h1
                 variants={itemVariants}
-                className="mb-6 text-4xl font-black uppercase leading-none tracking-tighter drop-shadow-2xl md:text-6xl"
+                className="mb-4 text-2xl font-black uppercase leading-tight tracking-tight drop-shadow-2xl sm:mb-6 sm:text-4xl sm:leading-none sm:tracking-tighter md:text-6xl"
                 style={{ color: "var(--portal-accent)" }}
               >
                 {slide.title}
@@ -191,7 +195,7 @@ export const HeroSection = ({
 
               <motion.p
                 variants={itemVariants}
-                className="mb-10 text-lg font-bold leading-relaxed text-white opacity-95 md:text-2xl"
+                className="mb-8 text-sm font-bold leading-relaxed text-white opacity-95 sm:mb-10 sm:text-lg md:text-2xl"
               >
                 {slide.desc}
               </motion.p>
@@ -199,7 +203,7 @@ export const HeroSection = ({
               <motion.div variants={itemVariants}>
                 <Link
                   to={slide.to}
-                  className="group mx-auto flex items-center gap-3 rounded-2xl px-14 py-4 text-lg font-bold text-white shadow-xl transition-all hover:scale-105 active:scale-95"
+                  className="group mx-auto flex w-full max-w-xs items-center justify-center gap-3 rounded-2xl px-6 py-3.5 text-base font-bold text-white shadow-xl transition-all hover:scale-105 active:scale-95 sm:w-auto sm:px-14 sm:py-4 sm:text-lg"
                   style={{ backgroundColor: "var(--portal-accent)" }}
                 >
                   {slide.btn}

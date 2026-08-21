@@ -243,7 +243,7 @@ export function TeacherGradesPage() {
         description="Enter marks, submit for admin approval. Students only see approved grades."
       />
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
         <Card className="border-[#E5EBF3] shadow-sm">
           <CardContent className="p-4">
             <p className="text-xs font-medium text-muted-foreground">Enrolled</p>

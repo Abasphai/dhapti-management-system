@@ -243,7 +243,7 @@ export function AdminFinancePage() {
         </Card>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
         {stats.map((stat) => (
           <Card
             key={stat.title}
@@ -391,8 +391,8 @@ export function AdminFinancePage() {
               />
             </div>
           ) : (
-          <div className="w-full overflow-x-hidden">
-          <Table className="w-full table-fixed">
+          <div className="table-scroll">
+          <Table className="w-full min-w-[720px]">
             <TableHeader>
               <TableRow className="border-b border-slate-700/50 bg-[#002147]/80 hover:bg-[#002147]/80 dark:border-slate-700/50 dark:bg-slate-800/80 dark:hover:bg-slate-800/80">
                 <TableHead className="w-[18%] whitespace-nowrap px-3 text-xs font-black uppercase tracking-wider text-slate-200">
@@ -546,7 +546,7 @@ export function AdminFinancePage() {
                 }
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-xs font-bold text-[#002147]">
                   Method

@@ -33,7 +33,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-[#E5EBF3] bg-white p-6 text-[#002147] shadow-xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-2xl",
+        "fixed left-[50%] top-[50%] z-50 grid w-[95%] max-h-[90vh] max-w-xl translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto rounded-2xl border border-[#E5EBF3] bg-white p-4 text-[#002147] shadow-xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:w-full sm:p-6",
         "dark:bg-white dark:text-[#002147]",
         // Force readable fields inside light modals (overrides dark-theme tokens)
         "[&_label]:!text-[#002147] [&_label]:font-semibold",

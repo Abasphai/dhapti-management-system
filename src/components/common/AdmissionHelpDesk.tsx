@@ -87,7 +87,7 @@ export function AdmissionHelpDesk() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.97 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className="relative z-10 flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-[32px] border border-[#E5EBF3] bg-white shadow-2xl"
+              className="relative z-10 flex max-h-[90vh] w-[95%] max-w-xl flex-col overflow-hidden rounded-2xl border border-[#E5EBF3] bg-white p-0 shadow-2xl sm:w-full"
             >
               {/* Header */}
               <div className="relative shrink-0 overflow-hidden bg-[#002147] px-6 py-5 text-white md:px-8">

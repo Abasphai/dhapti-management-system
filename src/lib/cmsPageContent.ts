@@ -57,17 +57,22 @@ export const LEGACY_SLIDE_IMAGE_PATHS = [
   "/images/slide5.jpg",
 ] as const;
 
-/** Working hero backgrounds (Unsplash via DHAPTI_IMAGES — no missing /public files). */
+/** Working hero backgrounds — high-res Unsplash CDN (globally reachable). */
 export const DEFAULT_SLIDE_IMAGES = [
-  DHAPTI_IMAGES.campus,
-  DHAPTI_IMAGES.students,
-  DHAPTI_IMAGES.lab,
-  DHAPTI_IMAGES.lecture,
-  DHAPTI_IMAGES.graduation,
-  DHAPTI_IMAGES.library,
-  DHAPTI_IMAGES.campus,
-  DHAPTI_IMAGES.students,
+  "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=1920&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1920&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=1920&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1920&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1920&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=1920&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1920&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=1920&auto=format&fit=crop",
 ] as const;
+
+/** Absolute last-resort CDN image if every Unsplash URL fails. */
+export const HERO_CDN_LAST_RESORT =
+  "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=1920&auto=format&fit=crop";
+
 
 const LEGACY_PATH_TO_REMOTE = Object.fromEntries(
   LEGACY_SLIDE_IMAGE_PATHS.map((path, i) => [path, DEFAULT_SLIDE_IMAGES[i]!])
@@ -112,9 +117,11 @@ export function slideImageOnErrorSrc(currentSrc: string, index = 0): string {
     DEFAULT_SLIDE_IMAGES[index % DEFAULT_SLIDE_IMAGES.length]!,
     DEFAULT_SLIDE_IMAGES[(index + 1) % DEFAULT_SLIDE_IMAGES.length]!,
     DEFAULT_SLIDE_IMAGES[(index + 2) % DEFAULT_SLIDE_IMAGES.length]!,
+    DEFAULT_SLIDE_IMAGES[(index + 3) % DEFAULT_SLIDE_IMAGES.length]!,
+    HERO_CDN_LAST_RESORT,
   ];
   const next = pool.find((url) => url !== currentSrc);
-  return next ?? pool[0]!;
+  return next ?? HERO_CDN_LAST_RESORT;
 }
 
 export function normalizeHeroSlide(slide: HeroSlide, index: number): HeroSlide {

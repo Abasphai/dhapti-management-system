@@ -479,8 +479,8 @@ export function AdminStudentsPage() {
               ]}
             />
           ) : (
-            <div className="w-full overflow-x-hidden">
-              <Table className="w-full table-fixed">
+            <div className="table-scroll">
+              <Table className="w-full min-w-[720px]">
                 <TableHeader>
                   <TableRow className="border-b border-slate-200 bg-slate-100 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/80 dark:hover:bg-slate-800/80">
                     <TableHead className="w-[130px] whitespace-nowrap px-3 text-[11px] font-bold uppercase tracking-wider text-[#002147]">
@@ -724,7 +724,7 @@ export function AdminStudentsPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div className="rounded-xl border border-[#E5EBF3] bg-slate-50 p-3">
                       <p className="text-[11px] font-bold uppercase text-slate-500">
                         Attendance
@@ -901,7 +901,7 @@ export function AdminStudentsPage() {
                 onChange={(v) => setForm((f) => ({ ...f, name: v }))}
                 placeholder="e.g. Ahmed Mohamed Ali"
               />
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase text-[#002147]">
                     Faculty
@@ -954,7 +954,7 @@ export function AdminStudentsPage() {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase text-[#002147]">
                     Semester
