@@ -137,11 +137,13 @@ export async function runCleanProductionSeed(db: PrismaClient = prisma) {
     `Seeded ${DHAPTI_FACULTY_DEPARTMENT_CATALOG.length} Dhapti faculties.`
   );
 
-  await db.user.create({
-    data: {
+  await db.user.upsert({
+    where: { email: MASTER_ADMIN_EMAIL },
+    create: {
       email: MASTER_ADMIN_EMAIL,
       passwordHash,
       role: "ADMIN",
+      status: "ACTIVE",
       admin: {
         create: {
           fullName: "Master Administrator",
@@ -149,8 +151,27 @@ export async function runCleanProductionSeed(db: PrismaClient = prisma) {
         },
       },
     },
+    update: {
+      passwordHash,
+      role: "ADMIN",
+      status: "ACTIVE",
+    },
   });
-  console.log(`  ✓ Master admin: ${MASTER_ADMIN_EMAIL}`);
+
+  const adminUser = await db.user.findUnique({
+    where: { email: MASTER_ADMIN_EMAIL },
+    include: { admin: true },
+  });
+  if (adminUser && !adminUser.admin) {
+    await db.admin.create({
+      data: {
+        userId: adminUser.id,
+        fullName: "Master Administrator",
+        email: MASTER_ADMIN_EMAIL,
+      },
+    });
+  }
+  console.log(`  ✓ Master admin: ${MASTER_ADMIN_EMAIL} / ${MASTER_ADMIN_PASSWORD}`);
 
   await seedCmsContent(db);
 

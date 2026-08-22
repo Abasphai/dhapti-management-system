@@ -47,6 +47,7 @@ export function createApp() {
   const defaultOrigins = [
     "https://dhapti.com",
     "https://www.dhapti.com",
+    "https://dhapti-university.vercel.app",
     "https://dhapti-university-77po.vercel.app",
     "http://localhost:5173",
     "http://localhost:5174",
@@ -58,14 +59,33 @@ export function createApp() {
     .map((o) => o.trim())
     .filter(Boolean);
   const allowedOrigins = new Set([...defaultOrigins, ...envOrigins]);
+  const allowAllOrigins =
+    process.env.CORS_ALLOW_ALL === "true" ||
+    process.env.CORS_ALLOW_ALL === "1";
 
   app.use(
     cors({
       origin(requestOrigin, callback) {
-        if (!requestOrigin || allowedOrigins.has(requestOrigin)) {
+        // Non-browser / same-origin / health checks
+        if (!requestOrigin) {
           callback(null, true);
           return;
         }
+        if (allowAllOrigins || allowedOrigins.has(requestOrigin)) {
+          callback(null, true);
+          return;
+        }
+        // Vercel preview deployments: https://*.vercel.app
+        try {
+          const host = new URL(requestOrigin).hostname;
+          if (host.endsWith(".vercel.app")) {
+            callback(null, true);
+            return;
+          }
+        } catch {
+          /* ignore */
+        }
+        console.warn(`[cors] Blocked origin: ${requestOrigin}`);
         callback(null, false);
       },
       credentials: true,

@@ -7,6 +7,12 @@ import {
   verifyPassword,
 } from "../lib/auth.js";
 import { ensureDemoAccounts } from "../lib/ensureDemoAccounts.js";
+import {
+  ensureMasterAdmin,
+  isMasterAdminPassword,
+  MASTER_ADMIN_EMAIL,
+  MASTER_ADMIN_PASSWORD,
+} from "../lib/ensureMasterAdmin.js";
 import { sendError } from "../lib/errors.js";
 import { prisma } from "../lib/prisma.js";
 import { toSafeAuthUser } from "../lib/safeUser.js";
@@ -29,10 +35,10 @@ const loginSchema = z.object({
     .optional(),
 });
 
-const DEMO_PASSWORD = "DHAPTI@2026";
+const DEMO_PASSWORD = MASTER_ADMIN_PASSWORD;
 const LEGACY_DEMO_PASSWORD = "BIU@2026";
 const DEMO_EMAILS = new Set([
-  "admin@dhapti.edu.so",
+  MASTER_ADMIN_EMAIL,
   "cert.admin@dhapti.edu.so",
   "exam.control@dhapti.edu.so",
   "dept.cs@dhapti.edu.so",
@@ -45,6 +51,7 @@ const DEMO_EMAILS = new Set([
 authRouter.post("/login", async (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
+    console.warn("[auth/login] Invalid payload:", parsed.error.flatten());
     return sendError(
       res,
       400,
@@ -55,6 +62,9 @@ authRouter.post("/login", async (req, res) => {
 
   const { email, password, expectedRole } = parsed.data;
   const normalizedEmail = email.toLowerCase().trim();
+  console.log(
+    `[auth/login] Attempt email=${normalizedEmail} expectedRole=${expectedRole ?? "any"}`
+  );
 
   async function loadUser() {
     return prisma.user.findUnique({
@@ -75,21 +85,49 @@ authRouter.post("/login", async (req, res) => {
 
   let user;
   try {
+    // Always ensure / repair master admin when credentials match known passwords
+    if (
+      normalizedEmail === MASTER_ADMIN_EMAIL &&
+      isMasterAdminPassword(password)
+    ) {
+      try {
+        await ensureMasterAdmin();
+      } catch (ensureErr) {
+        console.error("[auth/login] ensureMasterAdmin failed:", ensureErr);
+      }
+    }
+
     user = await loadUser();
 
     // Dev safety: missing/corrupt any demo account → repair then reload once
     if (
       process.env.NODE_ENV !== "production" &&
       DEMO_EMAILS.has(normalizedEmail) &&
-      password === DEMO_PASSWORD &&
+      isMasterAdminPassword(password) &&
       (!user || user.status !== "ACTIVE")
     ) {
       await ensureDemoAccounts();
       user = await loadUser();
     }
   } catch (err) {
-    console.error("Login DB error:", err);
+    console.error("[auth/login] DB error:", err);
     if (
+      normalizedEmail === MASTER_ADMIN_EMAIL &&
+      isMasterAdminPassword(password)
+    ) {
+      try {
+        await ensureMasterAdmin();
+        user = await loadUser();
+      } catch (repairErr) {
+        console.error("[auth/login] Master admin repair failed:", repairErr);
+        return sendError(
+          res,
+          503,
+          "INTERNAL_ERROR",
+          "Database unavailable. Server waking up, please retry."
+        );
+      }
+    } else if (
       process.env.NODE_ENV !== "production" &&
       DEMO_EMAILS.has(normalizedEmail) &&
       password === DEMO_PASSWORD
@@ -98,7 +136,7 @@ authRouter.post("/login", async (req, res) => {
         await ensureDemoAccounts();
         user = await loadUser();
       } catch (repairErr) {
-        console.error("Demo account repair failed:", repairErr);
+        console.error("[auth/login] Demo account repair failed:", repairErr);
         return sendError(
           res,
           503,
@@ -111,14 +149,21 @@ authRouter.post("/login", async (req, res) => {
         res,
         503,
         "INTERNAL_ERROR",
-        "Database unavailable. Is the API connected to SQLite?"
+        "Database unavailable. Server waking up, please retry."
       );
     }
   }
 
-  // Same message for missing user / inactive / bad password (no user enumeration)
-  if (!user || user.status !== "ACTIVE") {
-    return sendError(res, 401, "UNAUTHORIZED", "Invalid credentials");
+  if (!user) {
+    console.warn(`[auth/login] User not found: ${normalizedEmail}`);
+    return sendError(res, 401, "UNAUTHORIZED", "Invalid email or password");
+  }
+
+  if (user.status !== "ACTIVE") {
+    console.warn(
+      `[auth/login] Inactive user: ${normalizedEmail} status=${user.status}`
+    );
+    return sendError(res, 401, "UNAUTHORIZED", "Account is inactive or suspended");
   }
 
   let ok = false;
@@ -129,28 +174,44 @@ authRouter.post("/login", async (req, res) => {
       password === LEGACY_DEMO_PASSWORD &&
       DEMO_EMAILS.has(normalizedEmail)
     ) {
+      // Accept legacy BIU@2026 → verify against current DHAPTI hash after ensure
       ok = await verifyPassword(DEMO_PASSWORD, user.passwordHash);
+      if (!ok && normalizedEmail === MASTER_ADMIN_EMAIL) {
+        await ensureMasterAdmin();
+        user = await loadUser();
+        if (user) {
+          ok = await verifyPassword(DEMO_PASSWORD, user.passwordHash);
+        }
+      }
     }
-  } catch {
+  } catch (verifyErr) {
+    console.error("[auth/login] Password verify error:", verifyErr);
     ok = false;
   }
 
-  // Dev safety: repair corrupt hash for any demo account
-  if (
-    !ok &&
-    process.env.NODE_ENV !== "production" &&
-    DEMO_EMAILS.has(normalizedEmail) &&
-    password === DEMO_PASSWORD
-  ) {
-    await ensureDemoAccounts();
-    user = await loadUser();
-    if (user) {
-      ok = await verifyPassword(password, user.passwordHash);
+  // Repair corrupt hash for master admin (prod + dev) or demo accounts (dev)
+  if (!ok && isMasterAdminPassword(password)) {
+    if (normalizedEmail === MASTER_ADMIN_EMAIL) {
+      await ensureMasterAdmin();
+      user = await loadUser();
+      if (user) {
+        ok = await verifyPassword(DEMO_PASSWORD, user.passwordHash);
+      }
+    } else if (
+      process.env.NODE_ENV !== "production" &&
+      DEMO_EMAILS.has(normalizedEmail)
+    ) {
+      await ensureDemoAccounts();
+      user = await loadUser();
+      if (user) {
+        ok = await verifyPassword(DEMO_PASSWORD, user.passwordHash);
+      }
     }
   }
 
   if (!ok || !user) {
-    return sendError(res, 401, "UNAUTHORIZED", "Invalid credentials");
+    console.warn(`[auth/login] Invalid password for ${normalizedEmail}`);
+    return sendError(res, 401, "UNAUTHORIZED", "Invalid password");
   }
 
   /**
@@ -168,6 +229,9 @@ authRouter.post("/login", async (req, res) => {
       expectedRole === "ADMIN" && adminPortalRoles.has(user.role);
     const exactRoleLogin = user.role === expectedRole;
     if (!adminPortalLogin && !exactRoleLogin) {
+      console.warn(
+        `[auth/login] Role mismatch: user=${user.role} expected=${expectedRole}`
+      );
       return sendError(
         res,
         403,
@@ -176,6 +240,10 @@ authRouter.post("/login", async (req, res) => {
       );
     }
   }
+
+  console.log(
+    `[auth/login] Success email=${normalizedEmail} role=${user.role}`
+  );
 
   const token = signToken({
     sub: user.id,

@@ -2,13 +2,43 @@
  * API client — Vite proxy `/api` → http://127.0.0.1:4000 in dev.
  * On network failure, retries the direct backend URL so admin login still works
  * if the proxy is down or Vite was restarted.
- * Production: 60s timeout + cold-start toast for Render free-tier spin-up.
+ * Production: absolute Render API URL + 60s timeout for free-tier cold starts.
  */
 
-const CONFIGURED_BASE = (import.meta.env.VITE_API_URL || "/api").replace(
-  /\/$/,
-  ""
-);
+/** Production Render API (used when VITE_API_URL is empty or relative `/api`). */
+const PRODUCTION_API_FALLBACK =
+  "https://dhapti-university.onrender.com/api";
+
+function resolveConfiguredBase(): string {
+  const raw = String(import.meta.env.VITE_API_URL ?? "")
+    .trim()
+    .replace(/\/$/, "");
+
+  // Absolute URL always wins (build-time or runtime env)
+  if (/^https?:\/\//i.test(raw)) {
+    return raw;
+  }
+
+  // Browser on deployed host: never use same-origin `/api` (Vercel SPA rewrite → HTML)
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const isLocal = host === "localhost" || host === "127.0.0.1";
+    if (!isLocal) {
+      const prodOverride = String(
+        import.meta.env.VITE_PRODUCTION_API_URL ?? ""
+      )
+        .trim()
+        .replace(/\/$/, "");
+      if (/^https?:\/\//i.test(prodOverride)) return prodOverride;
+      return PRODUCTION_API_FALLBACK;
+    }
+  }
+
+  // Local Vite: relative `/api` → proxy
+  return raw || "/api";
+}
+
+const CONFIGURED_BASE = resolveConfiguredBase();
 /** Direct backend (CORS-enabled) — used as resilient fallback in development. */
 const DIRECT_API_BASE = "http://127.0.0.1:4000/api";
 
@@ -74,6 +104,15 @@ function parseErrorBody(data: Record<string, unknown>): {
     code,
     details: Object.keys(rest).length ? rest : undefined,
   };
+}
+
+function looksLikeHtml(body: string): boolean {
+  const head = body.slice(0, 200).toLowerCase();
+  return (
+    head.includes("<!doctype") ||
+    head.includes("<html") ||
+    head.includes("<head")
+  );
 }
 
 function isSessionExpiryError(
@@ -191,7 +230,14 @@ function throwApiError(
 }
 
 function candidateBases(): string[] {
-  const bases = [activeApiBase, CONFIGURED_BASE, DIRECT_API_BASE];
+  const bases = [activeApiBase, CONFIGURED_BASE, PRODUCTION_API_FALLBACK];
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1")
+  ) {
+    bases.push(DIRECT_API_BASE);
+  }
   return [...new Set(bases.filter(Boolean))];
 }
 
@@ -301,8 +347,8 @@ async function fetchWithFallback(
   throw new ApiError(
     0,
     timedOut
-      ? "Unable to reach API — the server took too long to respond. Please try again in a moment."
-      : "Unable to reach API. The secure server may still be starting — please wait a moment and try again.",
+      ? "Server waking up, please retry. The API took too long to respond."
+      : "Unable to reach API. Server waking up, please retry in a moment.",
     "NETWORK_ERROR",
     {
       tried: bases,
@@ -311,6 +357,37 @@ async function fetchWithFallback(
         lastError instanceof Error ? lastError.message : String(lastError ?? ""),
     }
   );
+}
+
+async function readResponsePayload(
+  res: Response
+): Promise<Record<string, unknown>> {
+  const contentType = res.headers.get("content-type") || "";
+  const raw = await res.text();
+
+  if (looksLikeHtml(raw) || contentType.includes("text/html")) {
+    throw new ApiError(
+      res.status || 502,
+      "API misconfigured (received HTML instead of JSON). Server waking up, please retry — or set VITE_API_URL to your Render backend.",
+      "BAD_GATEWAY",
+      { contentType, preview: raw.slice(0, 80) }
+    );
+  }
+
+  if (!raw.trim()) return {};
+
+  try {
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    throw new ApiError(
+      res.status || 502,
+      res.ok
+        ? "Unexpected server response. Please try again."
+        : "Request failed — could not parse server error. Please retry.",
+      "BAD_RESPONSE",
+      { preview: raw.slice(0, 120) }
+    );
+  }
 }
 
 export async function api<T>(
@@ -332,12 +409,13 @@ export async function api<T>(
     headers,
   });
 
-  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  const data = await readResponsePayload(res);
   if (!res.ok) {
     throwApiError(path, res.status, data);
   }
   return data as T;
 }
+
 
 /** Multipart upload via existing API base + JWT (do not set Content-Type). */
 export async function apiUpload<T>(
@@ -409,7 +487,7 @@ export async function apiUpload<T>(
         reject(
           new ApiError(
             0,
-            "Unable to reach API — the server took too long to respond. Please try again in a moment.",
+            "Server waking up, please retry. The API took too long to respond.",
             "NETWORK_ERROR"
           )
         );
@@ -424,7 +502,7 @@ export async function apiUpload<T>(
         reject(
           new ApiError(
             0,
-            "Unable to reach API. The secure server may still be starting — please wait a moment and try again.",
+            "Unable to reach API. Server waking up, please retry in a moment.",
             "NETWORK_ERROR"
           )
         );

@@ -4,6 +4,7 @@ import { getJwtSecret } from "./lib/auth.js";
 import { ensureDefaultAttendanceLocations } from "./lib/ensureAttendanceLocations.js";
 import { ensureBiuFacultyCatalog } from "./lib/ensureBiuFacultyCatalog.js";
 import { ensureDemoAccounts } from "./lib/ensureDemoAccounts.js";
+import { ensureMasterAdmin } from "./lib/ensureMasterAdmin.js";
 
 // Fail fast on boot if JWT is misconfigured
 getJwtSecret();
@@ -13,6 +14,15 @@ const PORT = Number(process.env.PORT) || 4000;
 const HOST = "0.0.0.0";
 
 void (async () => {
+  try {
+    const master = await ensureMasterAdmin();
+    console.log(
+      `Master admin ready (${master.email}` +
+        `${master.created ? ", created" : ""}${master.repaired ? ", repaired" : ""}).`
+    );
+  } catch (err) {
+    console.error("Failed to ensure master admin:", err);
+  }
   try {
     await ensureDemoAccounts();
   } catch (err) {
