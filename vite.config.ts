@@ -4,24 +4,21 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
+  base: "/",
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
   build: {
-    chunkSizeWarningLimit: 1000,
+    target: "es2020",
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
         manualChunks: {
-          "vendor-react": ["react", "react-dom", "react-router-dom"],
-          "vendor-motion": ["framer-motion", "lucide-react"],
-          "vendor-charts": ["recharts"],
-          "vendor-editor": [
-            "@tiptap/react",
-            "@tiptap/starter-kit",
-            "isomorphic-dompurify",
-          ],
+          vendor: ["react", "react-dom", "react-router-dom"],
+          "ui-icons": ["lucide-react", "framer-motion"],
+          charts: ["recharts"],
         },
       },
     },
