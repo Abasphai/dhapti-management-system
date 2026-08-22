@@ -57,34 +57,6 @@ function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
 
-function parseErrorBody(data: Record<string, unknown>): {
-  message: string;
-  code?: string;
-  details?: Record<string, unknown>;
-} {
-  const nested =
-    data.error && typeof data.error === "object"
-      ? (data.error as { message?: string; code?: string })
-      : null;
-  const message =
-    typeof data.error === "string"
-      ? data.error
-      : typeof nested?.message === "string"
-        ? nested.message
-        : typeof data.message === "string"
-          ? data.message
-          : "Request failed";
-  const code =
-    (typeof data.code === "string" ? data.code : undefined) ??
-    (typeof nested?.code === "string" ? nested.code : undefined);
-  const { error: _e, message: _m, code: _c, ...rest } = data;
-  return {
-    message,
-    code,
-    details: Object.keys(rest).length ? rest : undefined,
-  };
-}
-
 function looksLikeHtml(body: string): boolean {
   const head = body.slice(0, 200).toLowerCase();
   return (
@@ -196,16 +168,6 @@ function maybeHandleSessionExpiry(
     return;
   }
   handleSessionExpired();
-}
-
-function throwApiError(
-  path: string,
-  status: number,
-  data: Record<string, unknown>
-): never {
-  const { message, code, details } = parseErrorBody(data);
-  maybeHandleSessionExpiry(path, status, message, code, details);
-  throw new ApiError(status, message, code, details);
 }
 
 function candidateBases(): string[] {
@@ -342,32 +304,29 @@ async function fetchWithFallback(
 async function readResponsePayload(
   res: Response
 ): Promise<Record<string, unknown>> {
-  const contentType = res.headers.get("content-type") || "";
-  const raw = await res.text();
-
-  if (looksLikeHtml(raw) || contentType.includes("text/html")) {
-    throw new ApiError(
-      res.status || 502,
-      "API misconfigured (received HTML instead of JSON). Check that /api is routed to the Vercel serverless function.",
-      "BAD_GATEWAY",
-      { contentType, preview: raw.slice(0, 80) }
-    );
-  }
-
-  if (!raw.trim()) return {};
+  const text = await res.text();
+  let data: Record<string, unknown>;
 
   try {
-    return JSON.parse(raw) as Record<string, unknown>;
+    data = text.trim()
+      ? (JSON.parse(text) as Record<string, unknown>)
+      : {};
   } catch {
-    throw new ApiError(
-      res.status || 502,
-      res.ok
-        ? "Unexpected server response. Please try again."
-        : "Request failed — could not parse server error. Please retry.",
-      "BAD_RESPONSE",
-      { preview: raw.slice(0, 120) }
-    );
+    // Never fail with "could not parse" — use raw body as the error message
+    data = {
+      error: text?.trim() || "Server returned an unparsed error",
+    };
   }
+
+  if (looksLikeHtml(String(data.error ?? text))) {
+    return {
+      error:
+        "API misconfigured (received HTML instead of JSON). Check that /api is routed to the Vercel serverless function.",
+      code: "BAD_GATEWAY",
+    };
+  }
+
+  return data;
 }
 
 export async function api<T>(
@@ -391,7 +350,14 @@ export async function api<T>(
 
   const data = await readResponsePayload(res);
   if (!res.ok) {
-    throwApiError(path, res.status, data);
+    const message =
+      (typeof data.error === "string" && data.error) ||
+      (typeof data.message === "string" && data.message) ||
+      "Request failed";
+    const code =
+      typeof data.code === "string" ? data.code : undefined;
+    maybeHandleSessionExpiry(path, res.status, message, code, data);
+    throw new ApiError(res.status, message, code, data);
   }
   return data as T;
 }
@@ -438,24 +404,31 @@ export async function apiUpload<T>(
       xhr.onload = () => {
         clearUploadWait();
         activeApiBase = base;
-        let data: Record<string, unknown> = {};
+        const text = xhr.responseText || "";
+        let data: Record<string, unknown>;
         try {
-          data = JSON.parse(xhr.responseText || "{}") as Record<
-            string,
-            unknown
-          >;
+          data = text.trim()
+            ? (JSON.parse(text) as Record<string, unknown>)
+            : {};
         } catch {
-          data = {};
+          data = { error: text || "Server returned an unparsed error" };
         }
         if (xhr.status >= 200 && xhr.status < 300) {
           resolve(data as T);
           return;
         }
-        try {
-          throwApiError(path, xhr.status, data);
-        } catch (err) {
-          reject(err);
-        }
+        const message =
+          (typeof data.error === "string" && data.error) ||
+          (typeof data.message === "string" && data.message) ||
+          "Request failed";
+        reject(
+          new ApiError(
+            xhr.status,
+            message,
+            typeof data.code === "string" ? data.code : undefined,
+            data
+          )
+        );
       };
       xhr.ontimeout = () => {
         clearUploadWait();
@@ -502,11 +475,25 @@ export async function apiDownload(path: string, fallbackName: string) {
 
   const res = await fetchWithFallback(path, { headers });
   if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as Record<
-      string,
-      unknown
-    >;
-    throwApiError(path, res.status, data);
+    const text = await res.text();
+    let errorData: Record<string, unknown>;
+    try {
+      errorData = text.trim()
+        ? (JSON.parse(text) as Record<string, unknown>)
+        : {};
+    } catch {
+      errorData = { error: text || "Server returned an unparsed error" };
+    }
+    const message =
+      (typeof errorData.error === "string" && errorData.error) ||
+      (typeof errorData.message === "string" && errorData.message) ||
+      "Request failed";
+    throw new ApiError(
+      res.status,
+      message,
+      typeof errorData.code === "string" ? errorData.code : undefined,
+      errorData
+    );
   }
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
@@ -527,11 +514,25 @@ export async function apiBlobUrl(path: string): Promise<string> {
 
   const res = await fetchWithFallback(path, { headers });
   if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as Record<
-      string,
-      unknown
-    >;
-    throwApiError(path, res.status, data);
+    const text = await res.text();
+    let errorData: Record<string, unknown>;
+    try {
+      errorData = text.trim()
+        ? (JSON.parse(text) as Record<string, unknown>)
+        : {};
+    } catch {
+      errorData = { error: text || "Server returned an unparsed error" };
+    }
+    const message =
+      (typeof errorData.error === "string" && errorData.error) ||
+      (typeof errorData.message === "string" && errorData.message) ||
+      "Request failed";
+    throw new ApiError(
+      res.status,
+      message,
+      typeof errorData.code === "string" ? errorData.code : undefined,
+      errorData
+    );
   }
   const blob = await res.blob();
   return URL.createObjectURL(blob);

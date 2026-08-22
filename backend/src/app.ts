@@ -158,8 +158,22 @@ export function createApp() {
           "File exceeds size limit"
         );
       }
-      console.error(err);
-      sendError(res, 500, "INTERNAL_ERROR", "Internal server error");
+
+      const message = err?.message ?? "Internal server error";
+      const isPrismaEngine =
+        /prisma|query engine|binarytarget|schema engine/i.test(message);
+
+      console.error("[api]", err);
+      sendError(
+        res,
+        500,
+        "INTERNAL_ERROR",
+        isPrismaEngine
+          ? "Database engine unavailable. Prisma client may need regenerating for Vercel (rhel-openssl-3.0.x)."
+          : process.env.NODE_ENV === "production"
+            ? "Internal server error"
+            : message
+      );
       void next;
     }
   );
