@@ -2,6 +2,7 @@
  * API client — Vite proxy `/api` → http://127.0.0.1:4000 in dev.
  * On network failure, retries the direct backend URL so admin login still works
  * if the proxy is down or Vite was restarted.
+ * Production: 60s timeout + cold-start toast for Render free-tier spin-up.
  */
 
 const CONFIGURED_BASE = (import.meta.env.VITE_API_URL || "/api").replace(
@@ -11,7 +12,15 @@ const CONFIGURED_BASE = (import.meta.env.VITE_API_URL || "/api").replace(
 /** Direct backend (CORS-enabled) — used as resilient fallback in development. */
 const DIRECT_API_BASE = "http://127.0.0.1:4000/api";
 
+/** Render free-tier can take 30–50s to wake; allow a full minute before failing. */
+const REQUEST_TIMEOUT_MS = 60_000;
+/** Show cold-start feedback once the request has been waiting this long. */
+const COLD_START_TOAST_MS = 5_000;
+const COLD_START_MESSAGE =
+  "Waking up secure server, please wait a moment...";
+
 let activeApiBase = CONFIGURED_BASE;
+let coldStartToastId: string | number | undefined;
 
 export const TOKEN_KEY = "dhapti-auth-token";
 export const USER_KEY = "dhapti-auth-user";
@@ -189,17 +198,79 @@ function candidateBases(): string[] {
 
 function isNetworkFailure(err: unknown): boolean {
   if (err instanceof TypeError) return true;
-  if (err instanceof DOMException && err.name === "AbortError") return false;
+  if (err instanceof DOMException && err.name === "AbortError") return true;
   if (err instanceof Error) {
     const m = err.message.toLowerCase();
     return (
       m.includes("failed to fetch") ||
       m.includes("networkerror") ||
       m.includes("load failed") ||
-      m.includes("network request failed")
+      m.includes("network request failed") ||
+      m.includes("aborted") ||
+      m.includes("timeout")
     );
   }
   return false;
+}
+
+function showColdStartToast() {
+  void import("sonner").then(({ toast }) => {
+    coldStartToastId = toast.loading(COLD_START_MESSAGE, {
+      id: "api-cold-start",
+      duration: Infinity,
+    });
+  });
+}
+
+function dismissColdStartToast() {
+  void import("sonner").then(({ toast }) => {
+    toast.dismiss("api-cold-start");
+    coldStartToastId = undefined;
+  });
+}
+
+/**
+ * Fetch with 60s timeout. After 5s without a response, show a Render cold-start toast.
+ */
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit = {}
+): Promise<Response> {
+  const controller = new AbortController();
+  const externalSignal = init.signal;
+
+  const onExternalAbort = () => {
+    controller.abort();
+  };
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort();
+    } else {
+      externalSignal.addEventListener("abort", onExternalAbort, { once: true });
+    }
+  }
+
+  const timeoutId = window.setTimeout(() => {
+    controller.abort();
+  }, REQUEST_TIMEOUT_MS);
+
+  const coldStartId = window.setTimeout(() => {
+    showColdStartToast();
+  }, COLD_START_TOAST_MS);
+
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    window.clearTimeout(timeoutId);
+    window.clearTimeout(coldStartId);
+    if (externalSignal) {
+      externalSignal.removeEventListener("abort", onExternalAbort);
+    }
+    dismissColdStartToast();
+  }
 }
 
 async function fetchWithFallback(
@@ -212,22 +283,32 @@ async function fetchWithFallback(
   for (let i = 0; i < bases.length; i++) {
     const base = bases[i]!;
     try {
-      const res = await fetch(`${base}${path}`, init);
+      const res = await fetchWithTimeout(`${base}${path}`, init);
       activeApiBase = base;
       return res;
     } catch (err) {
       lastError = err;
+      // Timeout: do not burn another 60s on the next base.
+      if (err instanceof DOMException && err.name === "AbortError") {
+        break;
+      }
       if (!isNetworkFailure(err)) throw err;
-      // try next base
+      // try next base on true network failure
     }
   }
 
+  const timedOut =
+    lastError instanceof DOMException && lastError.name === "AbortError";
+
   throw new ApiError(
     0,
-    "Unable to reach the Dhapti API. Start the backend with `npm run dev:api` (port 4000) and the frontend with `npm run dev`.",
+    timedOut
+      ? "Unable to reach API — the server took too long to respond. Please try again in a moment."
+      : "Unable to reach API. The secure server may still be starting — please wait a moment and try again.",
     "NETWORK_ERROR",
     {
       tried: bases,
+      timeoutMs: REQUEST_TIMEOUT_MS,
       cause:
         lastError instanceof Error ? lastError.message : String(lastError ?? ""),
     }
@@ -281,13 +362,25 @@ export async function apiUpload<T>(
       const base = bases[baseIndex] ?? DIRECT_API_BASE;
       const xhr = new XMLHttpRequest();
       xhr.open("POST", `${base}${path}`);
+      xhr.timeout = REQUEST_TIMEOUT_MS;
       if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+      const coldStartId = window.setTimeout(() => {
+        showColdStartToast();
+      }, COLD_START_TOAST_MS);
+
+      const clearUploadWait = () => {
+        window.clearTimeout(coldStartId);
+        dismissColdStartToast();
+      };
+
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           onProgress(Math.round((event.loaded / event.total) * 100));
         }
       };
       xhr.onload = () => {
+        clearUploadWait();
         activeApiBase = base;
         let data: Record<string, unknown> = {};
         try {
@@ -308,7 +401,8 @@ export async function apiUpload<T>(
           reject(err);
         }
       };
-      xhr.onerror = () => {
+      xhr.ontimeout = () => {
+        clearUploadWait();
         if (baseIndex < bases.length - 1) {
           baseIndex += 1;
           attempt();
@@ -317,7 +411,22 @@ export async function apiUpload<T>(
         reject(
           new ApiError(
             0,
-            "Unable to reach the Dhapti API for upload. Is the backend running on port 4000?",
+            "Unable to reach API — the server took too long to respond. Please try again in a moment.",
+            "NETWORK_ERROR"
+          )
+        );
+      };
+      xhr.onerror = () => {
+        clearUploadWait();
+        if (baseIndex < bases.length - 1) {
+          baseIndex += 1;
+          attempt();
+          return;
+        }
+        reject(
+          new ApiError(
+            0,
+            "Unable to reach API. The secure server may still be starting — please wait a moment and try again.",
             "NETWORK_ERROR"
           )
         );
