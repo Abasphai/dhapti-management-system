@@ -3,6 +3,8 @@
  * If CMS is empty/loading/failed, consumers keep the current public design.
  */
 
+import { API_BASE_URL } from "@/lib/api";
+
 export type CmsWebsiteSettings = {
   universityName: string;
   universityShortName: string;
@@ -155,7 +157,7 @@ export const FALLBACK_FOOTER_QUICK_LINKS: PublicMenuItem[] = [
   { label: "Contact", to: "/contact" },
 ];
 
-const API_BASE = import.meta.env.VITE_API_URL || "/api";
+const API_BASE = API_BASE_URL;
 
 export async function fetchPublicCmsSettings(): Promise<CmsWebsiteSettings | null> {
   try {

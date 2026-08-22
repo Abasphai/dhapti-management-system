@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { CheckCircle2, ShieldAlert, ShieldCheck } from "lucide-react";
 
 import { DHAPTI_IMAGES } from "@/data/publicSite";
+import { API_BASE_URL } from "@/lib/api";
 
 type VerifyOk = {
   status: "VALID";
@@ -15,7 +16,7 @@ type VerifyOk = {
   verificationCode: string;
 };
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
+const API_BASE = API_BASE_URL;
 
 export function VerifyCertificatePage() {
   const { code = "" } = useParams();

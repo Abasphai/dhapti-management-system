@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 
+import { API_BASE_URL } from "@/lib/api";
+
 type DisplayPayload = {
   universityName: string;
   department: { id: string; name: string; code: string };
@@ -81,9 +83,7 @@ export function AttendanceQrDisplayPage() {
   const [serverSkewMs, setServerSkewMs] = useState(0);
   const cachedMode = useRef<string | null>(null);
 
-  const apiBase =
-    import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
-    "http://localhost:4000/api";
+  const apiBase = API_BASE_URL;
 
   const load = useCallback(async () => {
     setRefreshing(true);

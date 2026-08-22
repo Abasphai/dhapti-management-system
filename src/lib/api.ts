@@ -1,25 +1,24 @@
 /**
- * API client — Vite proxy `/api` → http://127.0.0.1:4000 in dev.
- * Production (Vercel): same-origin `/api` → serverless Express (`api/index.ts`).
- * On local network failure, retries the direct backend URL if the proxy is down.
+ * API client — always prefers same-origin `/api`:
+ * - Local: Vite proxy → Express :4000
+ * - Production: Vercel serverless (`api/index.ts`)
  */
 
-function resolveConfiguredBase(): string {
-  const raw = String(import.meta.env.VITE_API_URL ?? "")
-    .trim()
-    .replace(/\/$/, "");
+/**
+ * Relative `/api` for Vercel serverless. External absolute URLs (e.g. stale
+ * Render `VITE_API_URL`) are ignored so requests stay on dhapti.com/api/*.
+ */
+const _envApi = String(import.meta.env.VITE_API_URL ?? "")
+  .trim()
+  .replace(/\/$/, "");
+export const API_BASE_URL =
+  !_envApi ||
+  (/^https?:\/\//i.test(_envApi) &&
+    !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?(\/|$)/i.test(_envApi))
+    ? "/api"
+    : _envApi;
 
-  // Absolute URL always wins (e.g. staging override)
-  if (/^https?:\/\//i.test(raw)) {
-    return raw;
-  }
-
-  // Default: relative `/api` (local Vite proxy OR Vercel serverless on dhapti.com)
-  return raw || "/api";
-}
-
-const CONFIGURED_BASE = resolveConfiguredBase();
-/** Direct backend (CORS-enabled) — used as resilient fallback in development. */
+/** Direct backend — local-dev fallback only when Vite proxy is down. */
 const DIRECT_API_BASE = "http://127.0.0.1:4000/api";
 
 /** Allow cold-start / DB wake time on serverless. */
@@ -29,7 +28,7 @@ const COLD_START_TOAST_MS = 5_000;
 const COLD_START_MESSAGE =
   "Waking up secure server, please wait a moment...";
 
-let activeApiBase = CONFIGURED_BASE;
+let activeApiBase = API_BASE_URL;
 
 export const TOKEN_KEY = "dhapti-auth-token";
 export const USER_KEY = "dhapti-auth-user";
@@ -210,14 +209,15 @@ function throwApiError(
 }
 
 function candidateBases(): string[] {
-  const bases = [activeApiBase, CONFIGURED_BASE];
-  if (
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1")
-  ) {
-    bases.push(DIRECT_API_BASE);
+  // Production / deployed host: never leave same-origin /api
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const isLocal = host === "localhost" || host === "127.0.0.1";
+    if (!isLocal) {
+      return [API_BASE_URL];
+    }
   }
+  const bases = [activeApiBase, API_BASE_URL, DIRECT_API_BASE];
   return [...new Set(bases.filter(Boolean))];
 }
 
@@ -348,7 +348,7 @@ async function readResponsePayload(
   if (looksLikeHtml(raw) || contentType.includes("text/html")) {
     throw new ApiError(
       res.status || 502,
-      "API misconfigured (received HTML instead of JSON). Server waking up, please retry — or set VITE_API_URL to your Render backend.",
+      "API misconfigured (received HTML instead of JSON). Check that /api is routed to the Vercel serverless function.",
       "BAD_GATEWAY",
       { contentType, preview: raw.slice(0, 80) }
     );
@@ -539,5 +539,5 @@ export async function apiBlobUrl(path: string): Promise<string> {
 
 /** Current resolved API base (after successful fallback, if any). */
 export function getActiveApiBase() {
-  return activeApiBase;
+  return activeApiBase || API_BASE_URL;
 }

@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, API_BASE_URL } from "@/lib/api";
 
 type Dept = { id: string; name: string; code: string; facultyId: string };
 type Faculty = { id: string; name: string; code: string };
@@ -101,7 +101,7 @@ export function AdminTeacherPerformancePage() {
     setExporting(true);
     try {
       const token = localStorage.getItem("dhapti-auth-token");
-      const base = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
+      const base = API_BASE_URL;
       const params = new URLSearchParams({ format: "csv" });
       if (facultyId !== "all") params.set("facultyId", facultyId);
       if (departmentId !== "all") params.set("departmentId", departmentId);

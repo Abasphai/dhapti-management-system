@@ -29,7 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ApiError, api } from "@/lib/api";
+import { ApiError, api, API_BASE_URL } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 type SystemSettings = {
@@ -215,7 +215,7 @@ export function AdminSettingsPage() {
     setBackupBusy(true);
     try {
       const token = localStorage.getItem("dhapti-auth-token");
-      const base = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
+      const base = API_BASE_URL;
       const res = await fetch(`${base}/admin/settings/backup`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });

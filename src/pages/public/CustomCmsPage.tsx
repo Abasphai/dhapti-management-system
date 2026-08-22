@@ -19,8 +19,9 @@ import {
   type FaqAccordionBlockPayload,
   type RichTextBlockPayload,
 } from "@/lib/cmsPageContent";
+import { API_BASE_URL } from "@/lib/api";
 
-const API_BASE = import.meta.env.VITE_API_URL || "/api";
+const API_BASE = API_BASE_URL;
 
 function RichTextBlock({ payload }: { payload: RichTextBlockPayload }) {
   const heading = payload.heading?.trim();

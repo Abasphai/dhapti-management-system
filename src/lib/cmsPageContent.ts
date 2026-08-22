@@ -6,8 +6,9 @@ import {
   historyTimeline,
   leadership,
 } from "@/data/publicSite";
+import { API_BASE_URL } from "@/lib/api";
 
-const API_BASE = import.meta.env.VITE_API_URL || "/api";
+const API_BASE = API_BASE_URL;
 
 export type CmsPageBlock = {
   id?: string;
