@@ -20,7 +20,6 @@ const COLD_START_MESSAGE =
   "Waking up secure server, please wait a moment...";
 
 let activeApiBase = CONFIGURED_BASE;
-let coldStartToastId: string | number | undefined;
 
 export const TOKEN_KEY = "dhapti-auth-token";
 export const USER_KEY = "dhapti-auth-user";
@@ -215,7 +214,7 @@ function isNetworkFailure(err: unknown): boolean {
 
 function showColdStartToast() {
   void import("sonner").then(({ toast }) => {
-    coldStartToastId = toast.loading(COLD_START_MESSAGE, {
+    toast.loading(COLD_START_MESSAGE, {
       id: "api-cold-start",
       duration: Infinity,
     });
@@ -225,7 +224,6 @@ function showColdStartToast() {
 function dismissColdStartToast() {
   void import("sonner").then(({ toast }) => {
     toast.dismiss("api-cold-start");
-    coldStartToastId = undefined;
   });
 }
 

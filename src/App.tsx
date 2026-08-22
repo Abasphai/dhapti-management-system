@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { ScrollToHash } from "./components/common/ScrollToHash";
 import {
   AboutPage,
@@ -122,9 +123,10 @@ function AdminIndexRedirect() {
 
 function App() {
   return (
-    <Router>
-      <ScrollToHash />
-      <Routes>
+    <ErrorBoundary>
+      <Router>
+        <ScrollToHash />
+        <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/authority" element={<AuthorityPage />} />
@@ -278,7 +280,8 @@ function App() {
           </Route>
         </Route>
       </Routes>
-    </Router>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

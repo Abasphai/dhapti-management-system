@@ -40,27 +40,36 @@ export const HomePage = () => {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const page = await fetchPublishedCmsPage("home");
-      if (cancelled || !page?.blocks?.length) return;
+      try {
+        const page = await fetchPublishedCmsPage("home");
+        if (cancelled || !page?.blocks?.length) return;
 
-      const heroPayload = findBlockPayload<{ slides: HeroSlide[] }>(
-        page,
-        "HERO_SLIDER"
-      );
-      const whyPayload = findBlockPayload<WhyChoosePayload>(page, "WHY_CHOOSE");
-      const rectorPayload = findBlockPayload<RectorPayload>(
-        page,
-        "RECTOR_MESSAGE"
-      );
+        const heroPayload = findBlockPayload<{ slides: HeroSlide[] }>(
+          page,
+          "HERO_SLIDER"
+        );
+        const whyPayload = findBlockPayload<WhyChoosePayload>(page, "WHY_CHOOSE");
+        const rectorPayload = findBlockPayload<RectorPayload>(
+          page,
+          "RECTOR_MESSAGE"
+        );
 
-      if (heroPayload?.slides?.length) {
-        setSlides(normalizeHeroSlides(heroPayload.slides));
-      }
-      if (whyPayload?.stats?.length && whyPayload?.features?.length) {
-        setWhy(whyPayload);
-      }
-      if (rectorPayload?.name && rectorPayload?.message) {
-        setRector(rectorPayload);
+        if (heroPayload?.slides?.length) {
+          setSlides(normalizeHeroSlides(heroPayload.slides));
+        }
+        if (whyPayload?.stats?.length && whyPayload?.features?.length) {
+          setWhy(whyPayload);
+        }
+        if (rectorPayload?.name && rectorPayload?.message) {
+          setRector(rectorPayload);
+        }
+      } catch (err) {
+        console.warn("[HomePage] CMS load failed — using fallbacks", err);
+        if (!cancelled) {
+          setSlides(FALLBACK_HERO_SLIDES);
+          setWhy(FALLBACK_WHY_CHOOSE);
+          setRector(FALLBACK_RECTOR);
+        }
       }
     })();
     return () => {

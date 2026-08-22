@@ -54,22 +54,35 @@ const DEFAULT_LAYOUT: LayoutState = {
 
 const LayoutContext = createContext<LayoutContextValue | null>(null);
 
+function isThemePreset(value: unknown): value is ThemePreset {
+  return (
+    value === "Default" ||
+    value === "Brutalist" ||
+    value === "Soft Pop" ||
+    value === "Tangerine"
+  );
+}
+
 function readStoredLayout(): LayoutState {
   try {
+    if (typeof window === "undefined" || !window.localStorage) {
+      return DEFAULT_LAYOUT;
+    }
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_LAYOUT;
     const parsed = JSON.parse(raw) as Partial<LayoutState>;
-    return { ...DEFAULT_LAYOUT, ...parsed };
+    const merged = { ...DEFAULT_LAYOUT, ...parsed };
+    if (!isThemePreset(merged.themeColor)) {
+      merged.themeColor = DEFAULT_LAYOUT.themeColor;
+    }
+    return merged;
   } catch {
     return DEFAULT_LAYOUT;
   }
 }
 
 export function LayoutProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<LayoutState>(() => {
-    if (typeof window === "undefined") return DEFAULT_LAYOUT;
-    return readStoredLayout();
-  });
+  const [state, setState] = useState<LayoutState>(() => readStoredLayout());
 
   useEffect(() => {
     try {
@@ -78,10 +91,9 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
 
-    document.documentElement.style.setProperty(
-      "--portal-accent",
-      THEME_PRESET_COLORS[state.themeColor]
-    );
+    const color =
+      THEME_PRESET_COLORS[state.themeColor] ?? THEME_PRESET_COLORS.Default;
+    document.documentElement.style.setProperty("--portal-accent", color);
   }, [state]);
 
   const patch = useCallback((partial: Partial<LayoutState>) => {
@@ -91,7 +103,8 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
   const value = useMemo<LayoutContextValue>(
     () => ({
       ...state,
-      accentColor: THEME_PRESET_COLORS[state.themeColor],
+      accentColor:
+        THEME_PRESET_COLORS[state.themeColor] ?? THEME_PRESET_COLORS.Default,
       setThemeColor: (themeColor) => patch({ themeColor }),
       setSidebarVariant: (sidebarVariant) => patch({ sidebarVariant }),
       setNavbarStyle: (navbarStyle) => patch({ navbarStyle }),
@@ -114,8 +127,18 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const SAFE_LAYOUT: LayoutContextValue = {
+  ...DEFAULT_LAYOUT,
+  accentColor: THEME_PRESET_COLORS.Default,
+  setThemeColor: () => undefined,
+  setSidebarVariant: () => undefined,
+  setNavbarStyle: () => undefined,
+  setSidebarCollapsible: () => undefined,
+  setSidebarCollapsed: () => undefined,
+  toggleSidebarCollapsed: () => undefined,
+  setContentWidth: () => undefined,
+};
+
 export function useLayout() {
-  const ctx = useContext(LayoutContext);
-  if (!ctx) throw new Error("useLayout must be used within LayoutProvider");
-  return ctx;
+  return useContext(LayoutContext) ?? SAFE_LAYOUT;
 }

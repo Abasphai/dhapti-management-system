@@ -52,16 +52,13 @@ function applyDocumentLang(lang: Lang) {
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(() => {
-    if (typeof window === "undefined") return "en";
-    return readStoredLang();
-  });
+  const [lang, setLangState] = useState<Lang>(() => readStoredLang());
 
   const dir: "ltr" | "rtl" = lang === "ar" ? "rtl" : "ltr";
 
   useEffect(() => {
-    applyDocumentLang(lang);
     try {
+      applyDocumentLang(lang);
       localStorage.setItem(STORAGE_KEY, lang);
       localStorage.setItem(CMS_LOCALE_KEY, lang);
     } catch {
@@ -70,16 +67,27 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, [lang]);
 
   const setLang = useCallback((next: Lang) => {
-    setLangState(next);
+    if (next === "en" || next === "so" || next === "ar") {
+      setLangState(next);
+    }
   }, []);
 
-  const tFn = useCallback(
-    (key: TranslationKey) => translateKey(lang, key),
-    [lang]
-  );
+  const tFn = useCallback((key: TranslationKey) => {
+    try {
+      return translateKey(lang, key);
+    } catch {
+      return String(key);
+    }
+  }, [lang]);
 
   const translateLabelFn = useCallback(
-    (label: string, href?: string) => translateLabel(lang, label, href),
+    (label: string, href?: string) => {
+      try {
+        return translateLabel(lang, label, href);
+      } catch {
+        return label;
+      }
+    },
     [lang]
   );
 
@@ -101,12 +109,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const SAFE_LANGUAGE: LanguageContextValue = {
+  lang: "en",
+  setLang: () => undefined,
+  dir: "ltr",
+  t: (key) => String(key),
+  translateLabel: (label) => label,
+};
+
 export function useLanguage() {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) {
-    throw new Error("useLanguage must be used within LanguageProvider");
-  }
-  return ctx;
+  return useContext(LanguageContext) ?? SAFE_LANGUAGE;
 }
 
 export type { Lang, TranslationKey };

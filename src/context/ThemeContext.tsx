@@ -28,23 +28,21 @@ function applyThemeClass(theme: ThemeMode) {
 
 function readStoredTheme(): ThemeMode {
   try {
+    if (typeof window === "undefined" || !window.localStorage) return "light";
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === "dark" || stored === "light") return stored;
   } catch {
-    /* ignore */
+    /* ignore quota / private mode */
   }
   return "light";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>(() => {
-    if (typeof window === "undefined") return "light";
-    return readStoredTheme();
-  });
+  const [theme, setThemeState] = useState<ThemeMode>(() => readStoredTheme());
 
   useEffect(() => {
-    applyThemeClass(theme);
     try {
+      applyThemeClass(theme);
       localStorage.setItem(STORAGE_KEY, theme);
     } catch {
       /* ignore */
@@ -69,8 +67,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const SAFE_THEME: ThemeContextValue = {
+  theme: "light",
+  setTheme: () => undefined,
+  toggleTheme: () => undefined,
+};
+
 export function useTheme() {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
-  return ctx;
+  return useContext(ThemeContext) ?? SAFE_THEME;
 }

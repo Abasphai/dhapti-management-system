@@ -101,8 +101,12 @@ export function Footer() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const cmsSettings = await fetchPublicCmsSettings();
-      if (!cancelled && cmsSettings) setSettings(cmsSettings);
+      try {
+        const cmsSettings = await fetchPublicCmsSettings();
+        if (!cancelled && cmsSettings) setSettings(cmsSettings);
+      } catch (err) {
+        console.warn("[Footer] CMS settings load failed", err);
+      }
     })();
     return () => {
       cancelled = true;

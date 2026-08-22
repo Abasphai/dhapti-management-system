@@ -47,34 +47,48 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem(TOKEN_KEY)
-  );
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    const raw = localStorage.getItem(USER_KEY);
-    if (!raw) return null;
+  const [token, setToken] = useState<string | null>(() => {
     try {
+      return localStorage.getItem(TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  });
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    try {
+      const raw = localStorage.getItem(USER_KEY);
+      if (!raw) return null;
       return JSON.parse(raw) as AuthUser;
     } catch {
       return null;
     }
   });
-  const [loading, setLoading] = useState(Boolean(token));
+  const [loading, setLoading] = useState(() => Boolean(token));
 
   const persist = useCallback(
     (nextToken: string | null, nextUser: AuthUser | null) => {
       setToken(nextToken);
       setUser(nextUser);
-      if (nextToken) localStorage.setItem(TOKEN_KEY, nextToken);
-      else localStorage.removeItem(TOKEN_KEY);
-      if (nextUser) localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
-      else localStorage.removeItem(USER_KEY);
+      try {
+        if (nextToken) localStorage.setItem(TOKEN_KEY, nextToken);
+        else localStorage.removeItem(TOKEN_KEY);
+        if (nextUser) localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
+        else localStorage.removeItem(USER_KEY);
+      } catch {
+        /* ignore private-mode / quota errors */
+      }
     },
     []
   );
 
   const refreshMe = useCallback(async () => {
-    if (!localStorage.getItem(TOKEN_KEY)) {
+    let hasToken = false;
+    try {
+      hasToken = Boolean(localStorage.getItem(TOKEN_KEY));
+    } catch {
+      hasToken = false;
+    }
+    if (!hasToken) {
       setLoading(false);
       return;
     }
@@ -84,7 +98,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         persist(null, null);
         return;
       }
-      persist(localStorage.getItem(TOKEN_KEY), me);
+      let storedToken: string | null = null;
+      try {
+        storedToken = localStorage.getItem(TOKEN_KEY);
+      } catch {
+        storedToken = null;
+      }
+      persist(storedToken, me);
     } catch (err) {
       if (
         err instanceof ApiError &&
@@ -163,10 +183,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+const SAFE_AUTH: AuthContextValue = {
+  user: null,
+  token: null,
+  loading: false,
+  login: async () => {
+    throw new Error("Auth is not available");
+  },
+  logout: () => undefined,
+  refreshMe: async () => undefined,
+  isAuthenticated: false,
+};
+
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-  return ctx;
+  return useContext(AuthContext) ?? SAFE_AUTH;
 }

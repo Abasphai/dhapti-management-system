@@ -124,13 +124,6 @@ export function slideImageOnErrorSrc(currentSrc: string, index = 0): string {
   return next ?? HERO_CDN_LAST_RESORT;
 }
 
-export function normalizeHeroSlide(slide: HeroSlide, index: number): HeroSlide {
-  return {
-    ...slide,
-    imageUrl: resolveSlideImage(slide, index),
-  };
-}
-
 export function normalizeHeroSlides(slides: HeroSlide[]): HeroSlide[] {
   return slides.map((slide, index) => normalizeHeroSlide(slide, index));
 }
@@ -248,6 +241,21 @@ export const FALLBACK_HERO_SLIDES: HeroSlide[] = [
     imagePos: "object-top",
   },
 ];
+
+export function normalizeHeroSlide(slide: HeroSlide, index: number): HeroSlide {
+  const fallback = FALLBACK_HERO_SLIDES[index % FALLBACK_HERO_SLIDES.length]!;
+  return {
+    ...slide,
+    title: slide.title?.trim() || fallback.title,
+    description:
+      slide.description?.trim() ||
+      slide.subtitle?.trim() ||
+      fallback.description,
+    buttonText: slide.buttonText?.trim() || fallback.buttonText,
+    buttonLink: slide.buttonLink?.trim() || fallback.buttonLink || "/admissions",
+    imageUrl: resolveSlideImage(slide, index),
+  };
+}
 
 export const FALLBACK_WHY_CHOOSE: WhyChoosePayload = {
   sectionLabel: "Why Dhapti",

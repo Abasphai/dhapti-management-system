@@ -86,7 +86,8 @@ export function LayoutSettingsPopover({
     accentColor,
   } = useLayout();
 
-  const activePreset = themePresets.find((p) => p.id === themeColor)!;
+  const activePreset =
+    themePresets.find((p) => p.id === themeColor) ?? themePresets[0]!;
 
   useEffect(() => {
     if (!open) return;

@@ -64,11 +64,11 @@ const itemVariants = {
 
 function toSlide(s: HeroSlide, index: number) {
   return {
-    title: s.title,
+    title: s.title || "Dhapti University",
     desc: s.description || s.subtitle || "",
-    btn: s.buttonText,
+    btn: s.buttonText || "Learn More",
     pos: s.imagePos || "object-top",
-    to: s.buttonLink,
+    to: s.buttonLink || "/admissions",
     index,
   };
 }

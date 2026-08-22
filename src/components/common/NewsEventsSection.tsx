@@ -25,13 +25,29 @@ export function NewsEventsSection() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const [cmsNews, cmsEvents] = await Promise.all([
-        fetchPublishedNews(),
-        fetchPublishedEvents(),
-      ]);
-      if (cancelled) return;
-      setNews(cmsNews.slice(0, 3));
-      setEvents(cmsEvents.slice(0, 3));
+      try {
+        const [cmsNews, cmsEvents] = await Promise.all([
+          fetchPublishedNews(),
+          fetchPublishedEvents(),
+        ]);
+        if (cancelled) return;
+        setNews(
+          Array.isArray(cmsNews) && cmsNews.length > 0
+            ? cmsNews.slice(0, 3)
+            : FALLBACK_NEWS.slice(0, 3)
+        );
+        setEvents(
+          Array.isArray(cmsEvents) && cmsEvents.length > 0
+            ? cmsEvents.slice(0, 3)
+            : FALLBACK_EVENTS.slice(0, 3)
+        );
+      } catch (err) {
+        console.warn("[NewsEvents] CMS load failed — using fallbacks", err);
+        if (!cancelled) {
+          setNews(FALLBACK_NEWS.slice(0, 3));
+          setEvents(FALLBACK_EVENTS.slice(0, 3));
+        }
+      }
     })();
     return () => {
       cancelled = true;
