@@ -15,13 +15,23 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { LayoutSettingsPopover } from '@/components/common/LayoutSettingsPopover';
+import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
+import type { Lang } from '@/locales/translations';
+import { cn } from '@/lib/utils';
+
+const LANG_OPTIONS: { code: Lang; label: string }[] = [
+  { code: 'en', label: 'EN' },
+  { code: 'so', label: 'SO' },
+  { code: 'ar', label: 'AR' },
+];
 
 export const Navbar = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const { theme, toggleTheme } = useTheme();
+  const { lang, setLang } = useLanguage();
   const isDark = theme === 'dark';
 
   const menuData: Record<string, { label: string; href: string }[]> = {
@@ -88,7 +98,7 @@ export const Navbar = () => {
           <span className="truncate">DHAPTI UNIVERSITY</span>
         </div>
 
-        <div className="hidden shrink-0 items-center gap-4 md:flex md:gap-6">
+        <div className="hidden shrink-0 items-center gap-4 xl:flex xl:gap-6">
           {portalLinks.map((portal) => (
             <Link
               key={portal.href}
@@ -96,29 +106,30 @@ export const Navbar = () => {
               className="flex items-center gap-1.5 transition-colors hover:text-emerald-400"
             >
               <portal.icon size={14} className="text-emerald-400" />
-              <span className="hidden lg:inline">{portal.label}</span>
+              <span>{portal.label}</span>
             </Link>
           ))}
-          <div className="hidden items-center gap-1.5 border-l border-white/20 pl-4 xl:flex">
+          <div className="flex items-center gap-1.5 border-l border-white/20 pl-4">
             <Phone size={14} className="text-emerald-400" />
             <span>+252 61 700 1000</span>
           </div>
         </div>
       </div>
 
-      {/* 2. MAIN NAVBAR — mobile: logo + compact actions only */}
-      <div className="relative flex max-w-full items-center justify-between gap-2 overflow-x-hidden border-b-[3px] border-[#16a34a] bg-white px-3 py-3 text-[#002147] sm:px-6 md:px-12">
-        <Link to="/" className="flex min-w-0 shrink-0 items-center">
+      {/* 2. MAIN NAVBAR */}
+      <div className="relative flex max-w-full items-center justify-between gap-3 overflow-x-hidden border-b-[3px] border-[#16a34a] bg-white px-4 py-3 text-[#002147] sm:px-6 md:px-12">
+        {/* Left: Logo only on mobile/tablet */}
+        <Link to="/" className="flex shrink-0 items-center">
           <img
             src="/dhapti-logo.png"
             alt="Dhapti Logo"
-            className="h-10 w-auto max-w-[140px] object-contain sm:h-12 sm:max-w-none md:h-14"
+            className="h-10 w-auto object-contain md:h-12 xl:h-14"
           />
         </Link>
 
-        {/* DESKTOP NAV — strictly hidden below xl */}
+        {/* Desktop nav — 100% hidden below xl (< 1280px) */}
         <nav
-          className="hidden min-w-0 flex-1 items-center justify-center gap-5 text-[13px] font-extrabold tracking-wide text-[#002147] xl:flex xl:gap-6 2xl:gap-7"
+          className="mr-6 hidden items-center gap-6 text-[13px] font-extrabold tracking-wide text-[#002147] xl:flex"
           aria-label="Primary"
         >
           <Link to="/" className="shrink-0 transition-colors hover:text-[#16a34a]">
@@ -178,46 +189,53 @@ export const Navbar = () => {
           </Link>
         </nav>
 
-        {/* RIGHT ACTIONS */}
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 xl:gap-3">
-          <div className="hidden xl:block">
+        {/* Right actions */}
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Desktop-only: Settings + Theme */}
+          <div className="hidden items-center gap-1 border-l border-slate-200/60 pl-4 xl:flex">
             <LayoutSettingsPopover
               publicSite
               triggerClassName="p-2 rounded-xl text-slate-700 hover:text-[#16a34a] hover:bg-slate-100 transition-colors dark:text-slate-200 dark:hover:bg-slate-800"
             />
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="rounded-xl p-2 text-slate-700 transition-colors hover:bg-slate-100 hover:text-[#16a34a] dark:text-slate-200 dark:hover:bg-slate-800"
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDark ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <Link
+              to="/admissions"
+              className="rounded-xl bg-[#16a34a] px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-md transition-all hover:bg-[#15803d] active:scale-95"
+            >
+              Apply Now
+            </Link>
           </div>
 
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="rounded-xl p-2 text-slate-700 transition-colors hover:bg-slate-100 hover:text-[#16a34a] dark:text-slate-200 dark:hover:bg-slate-800"
-            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {isDark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-
-          <Link
-            to="/admissions"
-            className="rounded-xl bg-[#16a34a] px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-white shadow-md transition-all hover:bg-[#15803d] active:scale-95 sm:px-4 sm:text-xs md:px-6"
-          >
-            Apply
-            <span className="hidden sm:inline"> Now</span>
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => setIsMobileOpen(true)}
-            className="rounded-xl p-2 text-[#002147] hover:bg-slate-100 xl:hidden"
-            aria-label="Open menu"
-            aria-expanded={isMobileOpen}
-          >
-            <Menu size={24} />
-          </button>
+          {/* Mobile/tablet (< xl): Apply Now + Hamburger ONLY */}
+          <div className="flex items-center gap-2 xl:hidden">
+            <Link
+              to="/admissions"
+              className="rounded-lg bg-[#16a34a] px-3.5 py-1.5 text-[11px] font-black uppercase tracking-wider text-white shadow-md transition-all hover:bg-[#15803d] active:scale-95"
+            >
+              Apply Now
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsMobileOpen(true)}
+              className="rounded-xl p-2 text-[#002147] hover:bg-slate-100"
+              aria-label="Open menu"
+              aria-expanded={isMobileOpen}
+            >
+              <Menu size={24} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* MOBILE DRAWER — slide in from right */}
+      {/* MOBILE / TABLET DRAWER */}
       <AnimatePresence>
         {isMobileOpen && (
           <>
@@ -256,6 +274,43 @@ export const Navbar = () => {
                 >
                   <X size={24} />
                 </button>
+              </div>
+
+              {/* Controls: Settings · Theme · Language */}
+              <div className="flex flex-wrap items-center gap-2 border-b border-white/10 px-4 py-3">
+                <LayoutSettingsPopover
+                  publicSite
+                  triggerClassName="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white hover:bg-white/10"
+                />
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white transition-colors hover:bg-white/10"
+                  aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                >
+                  {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
+                <div
+                  className="ml-auto flex overflow-hidden rounded-lg border border-white/15"
+                  role="group"
+                  aria-label="Language"
+                >
+                  {LANG_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.code}
+                      type="button"
+                      onClick={() => setLang(opt.code)}
+                      className={cn(
+                        'px-2.5 py-2 text-[11px] font-black tracking-wide transition-colors',
+                        lang === opt.code
+                          ? 'bg-[#16a34a] text-white'
+                          : 'bg-transparent text-slate-300 hover:bg-white/10 hover:text-white'
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <nav className="flex-1 overflow-y-auto overflow-x-hidden p-4 [-webkit-overflow-scrolling:touch]">
@@ -336,14 +391,6 @@ export const Navbar = () => {
                     </Link>
                   ))}
                 </div>
-
-                <Link
-                  to="/admissions"
-                  onClick={closeMobile}
-                  className="mt-4 flex items-center justify-center rounded-xl bg-[#16a34a] px-4 py-3.5 text-xs font-black uppercase tracking-wider text-white"
-                >
-                  Apply Now
-                </Link>
               </nav>
             </motion.aside>
           </>
