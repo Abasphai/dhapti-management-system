@@ -90,9 +90,9 @@ export const Navbar = () => {
   }, [isMobileOpen]);
 
   return (
-    <header className="fixed left-0 top-0 z-[1000] w-full max-w-full overflow-x-hidden font-sans shadow-md">
+    <header className="fixed left-0 top-0 z-[9999] w-full max-w-full font-sans shadow-md">
       {/* 1. TOP BAR */}
-      <div className="flex max-w-full items-center justify-between overflow-x-hidden border-b border-white/10 bg-[#00152e] px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white sm:px-6 md:px-12 md:text-xs">
+      <div className="flex max-w-full items-center justify-between border-b border-white/10 bg-[#00152e] px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white sm:px-6 md:px-12 md:text-xs">
         <div className="flex min-w-0 items-center gap-2">
           <Home size={14} className="shrink-0 text-emerald-400" />
           <span className="truncate">DHAPTI UNIVERSITY</span>
@@ -116,8 +116,8 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* 2. MAIN NAVBAR */}
-      <div className="relative flex max-w-full items-center justify-between gap-3 overflow-x-hidden border-b-[3px] border-[#16a34a] bg-white px-4 py-3 text-[#002147] sm:px-6 md:px-12">
+      {/* 2. MAIN NAVBAR — overflow-visible so dropdowns are not clipped */}
+      <div className="relative z-[9999] flex max-w-full items-center justify-between gap-3 overflow-visible border-b-[3px] border-[#16a34a] bg-white px-4 py-3 text-[#002147] sm:px-6 md:px-12">
         {/* Left: Logo only on mobile/tablet */}
         <Link to="/" className="flex shrink-0 items-center">
           <img
@@ -129,7 +129,7 @@ export const Navbar = () => {
 
         {/* Desktop nav — 100% hidden below xl (< 1280px) */}
         <nav
-          className="mr-6 hidden items-center gap-6 text-[13px] font-extrabold tracking-wide text-[#002147] xl:flex"
+          className="relative z-[9999] mr-6 hidden items-center gap-6 overflow-visible text-[13px] font-extrabold tracking-wide text-[#002147] xl:flex"
           aria-label="Primary"
         >
           <Link to="/" className="shrink-0 transition-colors hover:text-[#16a34a]">
@@ -139,7 +139,7 @@ export const Navbar = () => {
           {Object.keys(menuData).map((menuKey) => (
             <div
               key={menuKey}
-              className="group relative shrink-0 cursor-pointer py-2"
+              className="group relative z-[9999] shrink-0 cursor-pointer overflow-visible py-2"
               onMouseEnter={() => setActiveMenu(menuKey)}
               onMouseLeave={() => setActiveMenu(null)}
             >
@@ -164,7 +164,7 @@ export const Navbar = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute left-0 top-full z-50 mt-2 w-64 rounded-b-xl border-t-[3px] border-[#16a34a] bg-white py-2 shadow-2xl"
+                    className="absolute left-0 top-full z-[9999] mt-2 w-64 rounded-b-xl border-t-[3px] border-[#16a34a] bg-white py-2 shadow-[0_20px_50px_rgba(0,0,0,0.4)]"
                   >
                     {menuData[menuKey].map((item, idx) => (
                       <Link

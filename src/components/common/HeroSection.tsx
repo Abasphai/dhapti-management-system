@@ -122,7 +122,7 @@ export const HeroSection = ({
 
   return (
     <div
-      className="relative mt-[100px] flex min-h-[calc(100vh-100px)] w-full max-w-full items-center justify-center overflow-hidden bg-black font-sans"
+      className="relative z-10 mt-[100px] flex min-h-[calc(100vh-100px)] w-full max-w-full items-center justify-center overflow-hidden bg-black font-sans"
       dir={dir}
     >
       <AnimatePresence mode="wait">
@@ -156,7 +156,7 @@ export const HeroSection = ({
         </motion.div>
       </AnimatePresence>
 
-      <div className="container relative z-20 mx-auto flex items-center justify-center px-4">
+      <div className="container relative z-10 mx-auto flex items-center justify-center px-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={`box-${current}`}

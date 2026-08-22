@@ -79,7 +79,7 @@ export const HomePage = () => {
 
   return (
     <div
-      className="site-shell min-h-screen w-full max-w-full overflow-x-hidden bg-white transition-colors dark:bg-slate-950"
+      className="site-shell relative z-0 min-h-screen w-full max-w-full overflow-x-hidden bg-white transition-colors dark:bg-slate-950"
       style={{ ["--portal-accent" as string]: accentColor }}
     >
       <Navbar />
