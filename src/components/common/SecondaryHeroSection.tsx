@@ -10,7 +10,7 @@ const SECONDARY_HERO_IMAGE =
 
 export function SecondaryHeroSection() {
   const { t, dir } = useLanguage();
-  const { contentContainerClass } = useLayout();
+  const { contentWidthClass } = useLayout();
 
   return (
     <section className="relative w-full min-h-[70vh] overflow-hidden bg-black">
@@ -22,7 +22,7 @@ export function SecondaryHeroSection() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30" />
 
       <div className="relative z-10 flex min-h-[70vh] items-center">
-        <div className={cn("layout-content-width py-20 md:py-28", contentContainerClass)}>
+        <div className={cn("layout-content-width py-20 md:py-28", contentWidthClass)}>
           <div className={`max-w-3xl ${dir === "rtl" ? "ms-auto" : ""}`}>
             <h2 className="text-3xl font-black uppercase leading-tight tracking-tight text-[#ea580c] drop-shadow-lg md:text-5xl lg:text-6xl">
               {t("secondary.title")}

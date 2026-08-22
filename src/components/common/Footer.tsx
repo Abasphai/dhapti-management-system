@@ -98,7 +98,7 @@ function SectionTitle({ children }: { children: ReactNode }) {
 
 export function Footer() {
   const { dir } = useLanguage();
-  const { contentContainerClass } = useLayout();
+  const { contentWidthClass } = useLayout();
   const [settings, setSettings] = useState<CmsWebsiteSettings | null>(null);
 
   useEffect(() => {
@@ -134,7 +134,7 @@ export function Footer() {
       />
 
       {/* Main grid — z-0 keeps fixed help-desk / scroll-top (z-50) unobstructed */}
-      <div className={cn("layout-content-width", contentContainerClass, "py-16")}>
+      <div className={cn("layout-content-width", contentWidthClass, "py-16")}>
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-12">
           {/* Column 1 — Brand */}
           <div className="space-y-5 lg:col-span-4">
@@ -302,7 +302,7 @@ export function Footer() {
         <div
           className={cn(
             "layout-content-width flex flex-col items-center justify-between gap-4 text-xs text-slate-400 md:flex-row",
-            contentContainerClass
+            contentWidthClass
           )}
         >
           <p className="text-center md:text-left">

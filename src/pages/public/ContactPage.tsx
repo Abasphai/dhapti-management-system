@@ -5,7 +5,9 @@ import { toast } from "sonner";
 
 import { PublicPageShell } from "@/components/common/PublicPageShell";
 import { useLanguage } from "@/context/LanguageContext";
+import { useLayout } from "@/context/LayoutContext";
 import { DHAPTI_IMAGES } from "@/data/publicSite";
+import { cn } from "@/lib/utils";
 
 const directory = [
   {
@@ -27,6 +29,7 @@ const directory = [
 
 export function ContactPage() {
   const { t, translateLabel } = useLanguage();
+  const { contentWidthClass } = useLayout();
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -49,8 +52,13 @@ export function ContactPage() {
       heroSubtitle={t("contact.heroSubtitle")}
       heroImage={DHAPTI_IMAGES.campus}
     >
-      <section className="px-4 py-14 md:px-8">
-        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2">
+      <section className="py-14">
+        <div
+          className={cn(
+            "layout-content-width grid gap-10 lg:grid-cols-2",
+            contentWidthClass
+          )}
+        >
           <motion.form
             onSubmit={onSubmit}
             initial={{ opacity: 0, y: 16 }}
@@ -175,7 +183,11 @@ export function ContactPage() {
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mx-auto mt-12 max-w-6xl overflow-hidden rounded-3xl border border-[#E5EBF3] dark:border-slate-800"
+          className={cn(
+            "layout-content-width mt-12 overflow-hidden rounded-3xl border border-[#E5EBF3] dark:border-slate-800",
+            contentWidthClass,
+            "!px-0"
+          )}
         >
           <div className="flex h-72 items-center justify-center bg-[linear-gradient(135deg,#002147_0%,#0a3a6e_50%,#16a34a_100%)] text-center text-white">
             <div>

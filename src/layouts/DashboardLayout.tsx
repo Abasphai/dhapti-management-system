@@ -1031,7 +1031,7 @@ export function DashboardLayout({
           </div>
         </header>
 
-        <main className="min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8">
+        <main className="min-w-0 flex-1 overflow-x-hidden">
           <div className={cn("layout-content-width", contentContainerClass)}>
             <AnimatePresence mode="wait">
               <motion.div

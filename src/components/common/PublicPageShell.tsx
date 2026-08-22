@@ -23,7 +23,7 @@ export function PublicPageShell({
   heroImage,
   narrow = false,
 }: PublicPageShellProps) {
-  const { accentColor, contentContainerClass } = useLayout();
+  const { accentColor, contentWidthClass } = useLayout();
 
   return (
     <div
@@ -39,11 +39,11 @@ export function PublicPageShell({
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#002147] via-[#002147]/75 to-black/35" />
-        <div className="relative z-10 w-full px-4 pb-12 md:px-8 md:pb-16">
+        <div className="relative z-10 w-full pb-12 md:pb-16">
           <div
             className={cn(
-              "layout-content-width transition-all duration-300 ease-in-out",
-              narrow ? "mx-auto max-w-3xl" : contentContainerClass
+              "layout-content-width",
+              narrow ? "mx-auto max-w-3xl px-4 sm:px-6 lg:px-8" : contentWidthClass
             )}
           >
             <motion.p

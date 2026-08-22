@@ -10,10 +10,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
   ChevronDown,
+  FoldHorizontal,
   Moon,
   Settings,
   Sun,
+  UnfoldHorizontal,
   X,
+  type LucideIcon,
 } from "lucide-react";
 
 import {
@@ -31,6 +34,26 @@ import { cn } from "@/lib/utils";
 const themePresets = (
   Object.entries(THEME_PRESET_COLORS) as [ThemePreset, string][]
 ).map(([id, color]) => ({ id, color }));
+
+const CONTENT_LAYOUT_OPTIONS: {
+  value: ContentWidth;
+  label: string;
+  hint: string;
+  Icon: LucideIcon;
+}[] = [
+  {
+    value: "Centered",
+    label: "Centered",
+    hint: "Focused",
+    Icon: FoldHorizontal,
+  },
+  {
+    value: "Full Width",
+    label: "Full Width",
+    hint: "Expanded",
+    Icon: UnfoldHorizontal,
+  },
+];
 
 function SettingLabel({ children }: { children: ReactNode }) {
   return (
@@ -61,6 +84,65 @@ function OptionChip({
       )}
     >
       {label}
+    </button>
+  );
+}
+
+function ContentLayoutOption({
+  value,
+  label,
+  hint,
+  Icon,
+  active,
+  onClick,
+}: {
+  value: ContentWidth;
+  label: string;
+  hint: string;
+  Icon: LucideIcon;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      aria-label={`${label} (${hint})`}
+      className={cn(
+        "group relative flex flex-col items-start gap-2 overflow-hidden rounded-xl border px-3 py-3 text-left transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
+        active
+          ? "scale-[1.02] border-transparent bg-gradient-to-br from-emerald-500/25 via-emerald-500/10 to-orange-500/25 text-white shadow-[0_0_0_1px_rgba(16,185,129,0.35),0_8px_24px_-8px_rgba(249,115,22,0.45)]"
+          : "scale-100 border-white/10 bg-white/[0.03] text-zinc-300 hover:scale-[1.01] hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
+      )}
+    >
+      <span
+        className={cn(
+          "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+          active
+            ? "bg-gradient-to-br from-emerald-400 to-orange-400 text-[#0b1220]"
+            : "bg-white/5 text-zinc-400 group-hover:text-white"
+        )}
+      >
+        <Icon className="h-4 w-4" strokeWidth={2.25} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-xs font-bold leading-tight">{label}</span>
+        <span
+          className={cn(
+            "mt-0.5 block text-[10px] font-medium",
+            active ? "text-emerald-200/90" : "text-zinc-500"
+          )}
+        >
+          ({hint})
+        </span>
+      </span>
+      {active && (
+        <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-400 text-[#0b1220]">
+          <Check className="h-2.5 w-2.5" strokeWidth={3} />
+        </span>
+      )}
+      <span className="sr-only">{value}</span>
     </button>
   );
 }
@@ -328,13 +410,16 @@ export function LayoutSettingsPopover({
 
         <section>
           <SettingLabel>Content Layout</SettingLabel>
-          <div className="grid grid-cols-2 gap-2">
-            {(["Centered", "Full Width"] as ContentWidth[]).map((option) => (
-              <OptionChip
-                key={option}
-                label={option}
-                active={contentWidth === option}
-                onClick={() => setContentWidth(option)}
+          <div className="grid grid-cols-2 gap-2.5">
+            {CONTENT_LAYOUT_OPTIONS.map((option) => (
+              <ContentLayoutOption
+                key={option.value}
+                value={option.value}
+                label={option.label}
+                hint={option.hint}
+                Icon={option.Icon}
+                active={contentWidth === option.value}
+                onClick={() => setContentWidth(option.value)}
               />
             ))}
           </div>

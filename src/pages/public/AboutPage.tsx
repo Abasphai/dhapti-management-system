@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 
 export function AboutPage() {
   const { t, translateLabel } = useLanguage();
-  const { contentContainerClass } = useLayout();
+  const { contentWidthClass } = useLayout();
   const [mission, setMission] = useState<MissionVisionPayload>(
     FALLBACK_MISSION_VISION
   );
@@ -65,7 +65,7 @@ export function AboutPage() {
         <div
           className={cn(
             "layout-content-width grid gap-8 md:grid-cols-2",
-            contentContainerClass
+            contentWidthClass
           )}
         >
           <motion.div
@@ -106,7 +106,7 @@ export function AboutPage() {
       </section>
 
       <section className="bg-[#F4F7FB] py-16 dark:bg-slate-900/50">
-        <div className={cn("layout-content-width", contentContainerClass)}>
+        <div className={cn("layout-content-width", contentWidthClass)}>
           <h2 className="text-center text-3xl font-black text-[#002147] dark:text-slate-100">
             {t("about.coreValues")}
           </h2>
@@ -134,7 +134,7 @@ export function AboutPage() {
       </section>
 
       <section id="history" className="scroll-mt-28 py-16">
-        <div className={cn("layout-content-width", contentContainerClass)}>
+        <div className={cn("layout-content-width", contentWidthClass)}>
           <h2 className="text-center text-3xl font-black text-[#002147] dark:text-slate-100">
             {translateLabel(history.sectionTitle)}
           </h2>
@@ -166,7 +166,7 @@ export function AboutPage() {
       </section>
 
       <section className="bg-[#002147] py-16">
-        <div className={cn("layout-content-width", contentContainerClass)}>
+        <div className={cn("layout-content-width", contentWidthClass)}>
           <h2 className="text-center text-3xl font-black text-white">
             {translateLabel(leadership.sectionTitle)}
           </h2>

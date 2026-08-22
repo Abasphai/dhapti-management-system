@@ -34,6 +34,8 @@ interface LayoutContextValue extends LayoutState {
   accentColor: string;
   /** Dynamic page/section container classes based on Centered vs Full Width */
   contentContainerClass: string;
+  /** Width + horizontal padding only (no vertical padding) */
+  contentWidthClass: string;
   /** Shorthand data-layout attribute value: "centered" | "full" */
   contentLayout: "centered" | "full";
   setThemeColor: (value: ThemePreset) => void;
@@ -71,15 +73,43 @@ function isContentWidth(value: unknown): value is ContentWidth {
   return value === "Centered" || value === "Full Width";
 }
 
+/** Fluid macOS/Linear-style layout morph (max-width, padding, margin). */
+export const LAYOUT_FLUID_TRANSITION =
+  "transition-[max-width,padding,margin] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]";
+
 export function getContentLayout(width: ContentWidth): "centered" | "full" {
   return width === "Centered" ? "centered" : "full";
 }
 
+/**
+ * Centered — elegant document workspace.
+ * Full Width — expansive enterprise shell (caps at 1920px).
+ */
 export function getContentContainerClass(width: ContentWidth): string {
   if (width === "Centered") {
-    return "w-full max-w-7xl mx-auto px-4 md:px-12 transition-all duration-300 ease-in-out";
+    return cnFluid(
+      "w-full max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+    );
   }
-  return "w-full max-w-none px-4 md:px-8 transition-all duration-300 ease-in-out";
+  return cnFluid(
+    "w-full max-w-[1920px] mx-auto px-6 sm:px-8 lg:px-14 py-6"
+  );
+}
+
+/** Width + horizontal padding only (public heroes / sections with own vertical rhythm). */
+export function getContentWidthClass(width: ContentWidth): string {
+  if (width === "Centered") {
+    return cnFluid(
+      "w-full max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+    );
+  }
+  return cnFluid(
+    "w-full max-w-[1920px] mx-auto px-6 sm:px-8 lg:px-14"
+  );
+}
+
+function cnFluid(...parts: string[]) {
+  return [...parts, LAYOUT_FLUID_TRANSITION].join(" ");
 }
 
 function readStoredLayout(): LayoutState {
@@ -137,6 +167,7 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
 
   const contentLayout = getContentLayout(state.contentWidth);
   const contentContainerClass = getContentContainerClass(state.contentWidth);
+  const contentWidthClass = getContentWidthClass(state.contentWidth);
 
   const value = useMemo<LayoutContextValue>(
     () => ({
@@ -145,6 +176,7 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
         THEME_PRESET_COLORS[state.themeColor] ?? THEME_PRESET_COLORS.Default,
       contentLayout,
       contentContainerClass,
+      contentWidthClass,
       setThemeColor: (themeColor) => patch({ themeColor }),
       setSidebarVariant: (sidebarVariant) => patch({ sidebarVariant }),
       setNavbarStyle: (navbarStyle) => patch({ navbarStyle }),
@@ -159,7 +191,7 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
         })),
       setContentWidth: (contentWidth) => patch({ contentWidth }),
     }),
-    [state, patch, contentLayout, contentContainerClass]
+    [state, patch, contentLayout, contentContainerClass, contentWidthClass]
   );
 
   return (
@@ -172,6 +204,7 @@ const SAFE_LAYOUT: LayoutContextValue = {
   accentColor: THEME_PRESET_COLORS.Default,
   contentLayout: "full",
   contentContainerClass: getContentContainerClass(DEFAULT_LAYOUT.contentWidth),
+  contentWidthClass: getContentWidthClass(DEFAULT_LAYOUT.contentWidth),
   setThemeColor: () => undefined,
   setSidebarVariant: () => undefined,
   setNavbarStyle: () => undefined,

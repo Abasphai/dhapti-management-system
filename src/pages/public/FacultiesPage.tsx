@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 export function FacultiesPage() {
   const location = useLocation();
   const { t, translateLabel } = useLanguage();
-  const { contentContainerClass } = useLayout();
+  const { contentWidthClass } = useLayout();
   const [faculties, setFaculties] =
     useState<FacultyPublicView[]>(facultyDetails);
   const [openId, setOpenId] = useState(facultyDetails[0]?.id ?? "");
@@ -57,7 +57,7 @@ export function FacultiesPage() {
       heroImage={DHAPTI_IMAGES.lecture}
     >
       <section className="py-14">
-        <div className={cn("layout-content-width space-y-4", contentContainerClass)}>
+        <div className={cn("layout-content-width space-y-4", contentWidthClass)}>
           {faculties.map((faculty) => {
             const open = openId === faculty.id;
             const overview =

@@ -21,7 +21,7 @@ const filters = ["All", "Campus News", "Research", "Admissions", "Events"] as co
 
 export function NewsPage() {
   const { locale } = useLocale();
-  const { contentContainerClass } = useLayout();
+  const { contentWidthClass } = useLayout();
   const [filter, setFilter] = useState<(typeof filters)[number]>("All");
   const [query, setQuery] = useState("");
   const [news, setNews] = useState<NewsItem[]>(FALLBACK_NEWS);
@@ -65,7 +65,7 @@ export function NewsPage() {
         <div
           className={cn(
             "layout-content-width grid gap-10 lg:grid-cols-[1fr_320px]",
-            contentContainerClass
+            contentWidthClass
           )}
         >
           <div>
