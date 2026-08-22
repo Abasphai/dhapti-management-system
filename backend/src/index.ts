@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { createApp } from "./app.js";
+import app from "./app.js";
 import { getJwtSecret } from "./lib/auth.js";
 import { ensureDefaultAttendanceLocations } from "./lib/ensureAttendanceLocations.js";
 import { ensureBiuFacultyCatalog } from "./lib/ensureBiuFacultyCatalog.js";
@@ -9,7 +9,6 @@ import { ensureMasterAdmin } from "./lib/ensureMasterAdmin.js";
 // Fail fast on boot if JWT is misconfigured
 getJwtSecret();
 
-const app = createApp();
 const PORT = Number(process.env.PORT) || 4000;
 const HOST = "0.0.0.0";
 

@@ -166,3 +166,8 @@ export function createApp() {
 
   return app;
 }
+
+/** Shared Express instance — used by local server and Vercel serverless (`api/index.ts`). */
+const app = createApp();
+export default app;
+

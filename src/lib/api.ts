@@ -1,40 +1,20 @@
 /**
  * API client — Vite proxy `/api` → http://127.0.0.1:4000 in dev.
- * On network failure, retries the direct backend URL so admin login still works
- * if the proxy is down or Vite was restarted.
- * Production: absolute Render API URL + 60s timeout for free-tier cold starts.
+ * Production (Vercel): same-origin `/api` → serverless Express (`api/index.ts`).
+ * On local network failure, retries the direct backend URL if the proxy is down.
  */
-
-/** Production Render API (used when VITE_API_URL is empty or relative `/api`). */
-const PRODUCTION_API_FALLBACK =
-  "https://dhapti-university.onrender.com/api";
 
 function resolveConfiguredBase(): string {
   const raw = String(import.meta.env.VITE_API_URL ?? "")
     .trim()
     .replace(/\/$/, "");
 
-  // Absolute URL always wins (build-time or runtime env)
+  // Absolute URL always wins (e.g. staging override)
   if (/^https?:\/\//i.test(raw)) {
     return raw;
   }
 
-  // Browser on deployed host: never use same-origin `/api` (Vercel SPA rewrite → HTML)
-  if (typeof window !== "undefined") {
-    const host = window.location.hostname;
-    const isLocal = host === "localhost" || host === "127.0.0.1";
-    if (!isLocal) {
-      const prodOverride = String(
-        import.meta.env.VITE_PRODUCTION_API_URL ?? ""
-      )
-        .trim()
-        .replace(/\/$/, "");
-      if (/^https?:\/\//i.test(prodOverride)) return prodOverride;
-      return PRODUCTION_API_FALLBACK;
-    }
-  }
-
-  // Local Vite: relative `/api` → proxy
+  // Default: relative `/api` (local Vite proxy OR Vercel serverless on dhapti.com)
   return raw || "/api";
 }
 
@@ -42,7 +22,7 @@ const CONFIGURED_BASE = resolveConfiguredBase();
 /** Direct backend (CORS-enabled) — used as resilient fallback in development. */
 const DIRECT_API_BASE = "http://127.0.0.1:4000/api";
 
-/** Render free-tier can take 30–50s to wake; allow a full minute before failing. */
+/** Allow cold-start / DB wake time on serverless. */
 const REQUEST_TIMEOUT_MS = 60_000;
 /** Show cold-start feedback once the request has been waiting this long. */
 const COLD_START_TOAST_MS = 5_000;
@@ -230,7 +210,7 @@ function throwApiError(
 }
 
 function candidateBases(): string[] {
-  const bases = [activeApiBase, CONFIGURED_BASE, PRODUCTION_API_FALLBACK];
+  const bases = [activeApiBase, CONFIGURED_BASE];
   if (
     typeof window !== "undefined" &&
     (window.location.hostname === "localhost" ||
