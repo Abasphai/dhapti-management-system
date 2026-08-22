@@ -2,12 +2,15 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
 import { useLanguage } from "@/context/LanguageContext";
+import { useLayout } from "@/context/LayoutContext";
+import { cn } from "@/lib/utils";
 
 const SECONDARY_HERO_IMAGE =
   "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1920&auto=format&fit=crop";
 
 export function SecondaryHeroSection() {
   const { t, dir } = useLanguage();
+  const { contentContainerClass } = useLayout();
 
   return (
     <section className="relative w-full min-h-[70vh] overflow-hidden bg-black">
@@ -19,7 +22,7 @@ export function SecondaryHeroSection() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30" />
 
       <div className="relative z-10 flex min-h-[70vh] items-center">
-        <div className="container mx-auto px-4 py-20 md:px-8 md:py-28">
+        <div className={cn("layout-content-width py-20 md:py-28", contentContainerClass)}>
           <div className={`max-w-3xl ${dir === "rtl" ? "ms-auto" : ""}`}>
             <h2 className="text-3xl font-black uppercase leading-tight tracking-tight text-[#ea580c] drop-shadow-lg md:text-5xl lg:text-6xl">
               {t("secondary.title")}

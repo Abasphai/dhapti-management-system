@@ -748,7 +748,7 @@ export function DashboardLayout({
     isSidebarCollapsed,
     setSidebarCollapsed,
     toggleSidebarCollapsed,
-    contentWidth,
+    contentContainerClass,
   } = useLayout();
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -1032,12 +1032,7 @@ export function DashboardLayout({
         </header>
 
         <main className="min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8">
-          <div
-            className={cn(
-              contentWidth === "Centered" && "mx-auto w-full max-w-6xl",
-              contentWidth === "Full Width" && "w-full"
-            )}
-          >
+          <div className={cn("layout-content-width", contentContainerClass)}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}

@@ -31,7 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export const HomePage = () => {
-  const { accentColor, contentWidth } = useLayout();
+  const { accentColor, contentContainerClass } = useLayout();
   const { t, translateLabel, dir } = useLanguage();
   const [slides, setSlides] = useState<HeroSlide[]>(FALLBACK_HERO_SLIDES);
   const [why, setWhy] = useState<WhyChoosePayload>(FALLBACK_WHY_CHOOSE);
@@ -87,20 +87,14 @@ export const HomePage = () => {
       <HeroSection slides={slides} />
       <SecondaryHeroSection />
 
-      <main
-        className={cn(
-          contentWidth === "Centered" && "mx-auto w-full max-w-7xl"
-        )}
-      >
-        <section className="py-16 md:py-24 dark:bg-slate-950">
-          <WhyChooseSection data={why} />
-        </section>
+      <main>
+        <WhyChooseSection data={why} />
 
         <section
           id="faculties"
-          className="scroll-mt-24 bg-gray-50 py-16 transition-colors dark:bg-slate-900"
+          className="scroll-mt-24 bg-gray-50 py-16 transition-colors dark:bg-slate-900 md:py-24"
         >
-          <div className="container mx-auto px-4">
+          <div className={cn("layout-content-width", contentContainerClass)}>
             <div className="mb-16 text-center">
               <h2 className="mb-4 text-4xl font-black uppercase tracking-tight text-[#002147] dark:text-slate-100">
                 {t("faculties.heading")}
@@ -118,7 +112,7 @@ export const HomePage = () => {
         </section>
 
         <section className="py-16 md:py-24 dark:bg-slate-950">
-          <div className="container mx-auto px-4">
+          <div className={cn("layout-content-width", contentContainerClass)}>
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -172,13 +166,16 @@ export const HomePage = () => {
           </div>
         </section>
 
-        <section className="py-16 md:py-24 dark:bg-slate-950">
-          <NewsEventsSection />
-        </section>
+        <NewsEventsSection />
 
         <section className="relative overflow-hidden bg-[#002147] py-20 text-center text-white">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-          <div className="container relative z-10 mx-auto px-4">
+          <div
+            className={cn(
+              "layout-content-width relative z-10",
+              contentContainerClass
+            )}
+          >
             <h2 className="mb-6 text-4xl font-black uppercase md:text-5xl">
               {t("home.cta.title")}
             </h2>

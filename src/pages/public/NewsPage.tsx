@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { PublicPageShell } from "@/components/common/PublicPageShell";
 import { FittedImage } from "@/components/common/FittedImage";
 import { useLocale } from "@/context/LocaleContext";
+import { useLayout } from "@/context/LayoutContext";
 import { DHAPTI_IMAGES, type NewsItem } from "@/data/publicSite";
 import {
   FALLBACK_EVENTS,
@@ -20,6 +21,7 @@ const filters = ["All", "Campus News", "Research", "Admissions", "Events"] as co
 
 export function NewsPage() {
   const { locale } = useLocale();
+  const { contentContainerClass } = useLayout();
   const [filter, setFilter] = useState<(typeof filters)[number]>("All");
   const [query, setQuery] = useState("");
   const [news, setNews] = useState<NewsItem[]>(FALLBACK_NEWS);
@@ -59,8 +61,13 @@ export function NewsPage() {
       heroSubtitle="Campus announcements, research highlights, admissions updates, and upcoming university events."
       heroImage={DHAPTI_IMAGES.students}
     >
-      <section className="px-4 py-12 pb-28 md:px-8">
-        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1fr_320px]">
+      <section className="py-12 pb-28">
+        <div
+          className={cn(
+            "layout-content-width grid gap-10 lg:grid-cols-[1fr_320px]",
+            contentContainerClass
+          )}
+        >
           <div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="relative flex-1">

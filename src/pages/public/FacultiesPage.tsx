@@ -11,6 +11,7 @@ import {
   htmlHasVisibleText,
 } from "@/components/cms/SafeHtml";
 import { useLanguage } from "@/context/LanguageContext";
+import { useLayout } from "@/context/LayoutContext";
 import { DHAPTI_IMAGES, facultyDetails } from "@/data/publicSite";
 import {
   fetchPublishedFaculties,
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 export function FacultiesPage() {
   const location = useLocation();
   const { t, translateLabel } = useLanguage();
+  const { contentContainerClass } = useLayout();
   const [faculties, setFaculties] =
     useState<FacultyPublicView[]>(facultyDetails);
   const [openId, setOpenId] = useState(facultyDetails[0]?.id ?? "");
@@ -54,8 +56,8 @@ export function FacultiesPage() {
       heroSubtitle={t("faculties.pageSubtitle")}
       heroImage={DHAPTI_IMAGES.lecture}
     >
-      <section className="px-4 py-14 md:px-8">
-        <div className="mx-auto max-w-5xl space-y-4">
+      <section className="py-14">
+        <div className={cn("layout-content-width space-y-4", contentContainerClass)}>
           {faculties.map((faculty) => {
             const open = openId === faculty.id;
             const overview =

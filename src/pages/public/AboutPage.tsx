@@ -5,6 +5,7 @@ import { PublicPageShell } from "@/components/common/PublicPageShell";
 import { FittedImage } from "@/components/common/FittedImage";
 import { CmsText } from "@/components/cms/SafeHtml";
 import { useLanguage } from "@/context/LanguageContext";
+import { useLayout } from "@/context/LayoutContext";
 import { DHAPTI_IMAGES, coreValues } from "@/data/publicSite";
 import {
   FALLBACK_ABOUT_HERO,
@@ -17,9 +18,11 @@ import {
   type LeadershipPayload,
   type MissionVisionPayload,
 } from "@/lib/cmsPageContent";
+import { cn } from "@/lib/utils";
 
 export function AboutPage() {
   const { t, translateLabel } = useLanguage();
+  const { contentContainerClass } = useLayout();
   const [mission, setMission] = useState<MissionVisionPayload>(
     FALLBACK_MISSION_VISION
   );
@@ -58,8 +61,13 @@ export function AboutPage() {
       heroSubtitle={t("about.heroSubtitle")}
       heroImage={FALLBACK_ABOUT_HERO.image || DHAPTI_IMAGES.campus}
     >
-      <section id="mission" className="scroll-mt-28 px-4 py-16 md:px-8">
-        <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2">
+      <section id="mission" className="scroll-mt-28 py-16">
+        <div
+          className={cn(
+            "layout-content-width grid gap-8 md:grid-cols-2",
+            contentContainerClass
+          )}
+        >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -97,8 +105,8 @@ export function AboutPage() {
         </div>
       </section>
 
-      <section className="bg-[#F4F7FB] px-4 py-16 dark:bg-slate-900/50 md:px-8">
-        <div className="mx-auto max-w-6xl">
+      <section className="bg-[#F4F7FB] py-16 dark:bg-slate-900/50">
+        <div className={cn("layout-content-width", contentContainerClass)}>
           <h2 className="text-center text-3xl font-black text-[#002147] dark:text-slate-100">
             {t("about.coreValues")}
           </h2>
@@ -125,8 +133,8 @@ export function AboutPage() {
         </div>
       </section>
 
-      <section id="history" className="scroll-mt-28 px-4 py-16 md:px-8">
-        <div className="mx-auto max-w-4xl">
+      <section id="history" className="scroll-mt-28 py-16">
+        <div className={cn("layout-content-width", contentContainerClass)}>
           <h2 className="text-center text-3xl font-black text-[#002147] dark:text-slate-100">
             {translateLabel(history.sectionTitle)}
           </h2>
@@ -157,8 +165,8 @@ export function AboutPage() {
         </div>
       </section>
 
-      <section className="bg-[#002147] px-4 py-16 md:px-8">
-        <div className="mx-auto max-w-6xl">
+      <section className="bg-[#002147] py-16">
+        <div className={cn("layout-content-width", contentContainerClass)}>
           <h2 className="text-center text-3xl font-black text-white">
             {translateLabel(leadership.sectionTitle)}
           </h2>

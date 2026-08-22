@@ -13,11 +13,13 @@ import {
 } from "lucide-react";
 
 import { useLanguage } from "@/context/LanguageContext";
+import { useLayout } from "@/context/LayoutContext";
 import {
   fetchPublicCmsSettings,
   resolveInternalLink,
   type CmsWebsiteSettings,
 } from "@/lib/cmsPublic";
+import { cn } from "@/lib/utils";
 
 const MISSION =
   "Empowering the next generation of leaders, innovators, and professionals across Somalia through world-class education and practical skills.";
@@ -96,6 +98,7 @@ function SectionTitle({ children }: { children: ReactNode }) {
 
 export function Footer() {
   const { dir } = useLanguage();
+  const { contentContainerClass } = useLayout();
   const [settings, setSettings] = useState<CmsWebsiteSettings | null>(null);
 
   useEffect(() => {
@@ -131,7 +134,7 @@ export function Footer() {
       />
 
       {/* Main grid — z-0 keeps fixed help-desk / scroll-top (z-50) unobstructed */}
-      <div className="mx-auto max-w-7xl px-6 py-16 md:px-12">
+      <div className={cn("layout-content-width", contentContainerClass, "py-16")}>
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-12">
           {/* Column 1 — Brand */}
           <div className="space-y-5 lg:col-span-4">
@@ -295,8 +298,13 @@ export function Footer() {
       </div>
 
       {/* Bottom sub-footer */}
-      <div className="border-t border-white/5 bg-[#000711] px-6 py-5 md:px-12">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-xs text-slate-400 md:flex-row">
+      <div className="border-t border-white/5 bg-[#000711] py-5">
+        <div
+          className={cn(
+            "layout-content-width flex flex-col items-center justify-between gap-4 text-xs text-slate-400 md:flex-row",
+            contentContainerClass
+          )}
+        >
           <p className="text-center md:text-left">
             &copy; {year} Dhapti University. All rights reserved. Learn &bull;
             Skill &bull; Grow.

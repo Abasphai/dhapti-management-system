@@ -32,6 +32,10 @@ interface LayoutState {
 
 interface LayoutContextValue extends LayoutState {
   accentColor: string;
+  /** Dynamic page/section container classes based on Centered vs Full Width */
+  contentContainerClass: string;
+  /** Shorthand data-layout attribute value: "centered" | "full" */
+  contentLayout: "centered" | "full";
   setThemeColor: (value: ThemePreset) => void;
   setSidebarVariant: (value: SidebarVariant) => void;
   setNavbarStyle: (value: NavbarStyle) => void;
@@ -63,6 +67,21 @@ function isThemePreset(value: unknown): value is ThemePreset {
   );
 }
 
+function isContentWidth(value: unknown): value is ContentWidth {
+  return value === "Centered" || value === "Full Width";
+}
+
+export function getContentLayout(width: ContentWidth): "centered" | "full" {
+  return width === "Centered" ? "centered" : "full";
+}
+
+export function getContentContainerClass(width: ContentWidth): string {
+  if (width === "Centered") {
+    return "w-full max-w-7xl mx-auto px-4 md:px-12 transition-all duration-300 ease-in-out";
+  }
+  return "w-full max-w-none px-4 md:px-8 transition-all duration-300 ease-in-out";
+}
+
 function readStoredLayout(): LayoutState {
   try {
     if (typeof window === "undefined" || !window.localStorage) {
@@ -75,14 +94,33 @@ function readStoredLayout(): LayoutState {
     if (!isThemePreset(merged.themeColor)) {
       merged.themeColor = DEFAULT_LAYOUT.themeColor;
     }
+    if (!isContentWidth(merged.contentWidth)) {
+      merged.contentWidth = DEFAULT_LAYOUT.contentWidth;
+    }
     return merged;
   } catch {
     return DEFAULT_LAYOUT;
   }
 }
 
+function applyLayoutToDocument(state: LayoutState) {
+  const color =
+    THEME_PRESET_COLORS[state.themeColor] ?? THEME_PRESET_COLORS.Default;
+  document.documentElement.style.setProperty("--portal-accent", color);
+  document.documentElement.setAttribute(
+    "data-layout",
+    getContentLayout(state.contentWidth)
+  );
+}
+
 export function LayoutProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<LayoutState>(() => readStoredLayout());
+  const [state, setState] = useState<LayoutState>(() => {
+    const initial = readStoredLayout();
+    if (typeof document !== "undefined") {
+      applyLayoutToDocument(initial);
+    }
+    return initial;
+  });
 
   useEffect(() => {
     try {
@@ -90,21 +128,23 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
-
-    const color =
-      THEME_PRESET_COLORS[state.themeColor] ?? THEME_PRESET_COLORS.Default;
-    document.documentElement.style.setProperty("--portal-accent", color);
+    applyLayoutToDocument(state);
   }, [state]);
 
   const patch = useCallback((partial: Partial<LayoutState>) => {
     setState((prev) => ({ ...prev, ...partial }));
   }, []);
 
+  const contentLayout = getContentLayout(state.contentWidth);
+  const contentContainerClass = getContentContainerClass(state.contentWidth);
+
   const value = useMemo<LayoutContextValue>(
     () => ({
       ...state,
       accentColor:
         THEME_PRESET_COLORS[state.themeColor] ?? THEME_PRESET_COLORS.Default,
+      contentLayout,
+      contentContainerClass,
       setThemeColor: (themeColor) => patch({ themeColor }),
       setSidebarVariant: (sidebarVariant) => patch({ sidebarVariant }),
       setNavbarStyle: (navbarStyle) => patch({ navbarStyle }),
@@ -119,7 +159,7 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
         })),
       setContentWidth: (contentWidth) => patch({ contentWidth }),
     }),
-    [state, patch]
+    [state, patch, contentLayout, contentContainerClass]
   );
 
   return (
@@ -130,6 +170,8 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
 const SAFE_LAYOUT: LayoutContextValue = {
   ...DEFAULT_LAYOUT,
   accentColor: THEME_PRESET_COLORS.Default,
+  contentLayout: "full",
+  contentContainerClass: getContentContainerClass(DEFAULT_LAYOUT.contentWidth),
   setThemeColor: () => undefined,
   setSidebarVariant: () => undefined,
   setNavbarStyle: () => undefined,

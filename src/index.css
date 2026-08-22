@@ -156,7 +156,44 @@
   }
 
   .section-container {
-    @apply container mx-auto px-4 sm:px-6 md:px-12;
+    @apply mx-auto w-full px-4 transition-all duration-300 ease-in-out sm:px-6 md:px-12;
+    max-width: 80rem; /* max-w-7xl — centered default */
+  }
+
+  html[data-layout="full"] .section-container {
+    max-width: none;
+    @apply px-4 md:px-8;
+  }
+
+  html[data-layout="centered"] .section-container {
+    max-width: 80rem;
+    @apply px-4 md:px-12;
+  }
+
+  /* Shared dynamic width shell for public + portal pages */
+  .layout-content-width {
+    @apply mx-auto w-full transition-all duration-300 ease-in-out;
+  }
+
+  html[data-layout="centered"] .layout-content-width {
+    max-width: 80rem;
+  }
+
+  html[data-layout="full"] .layout-content-width {
+    max-width: none;
+  }
+
+  /* Expand hardcoded shells when Full Width is selected */
+  html[data-layout="full"] .dashboard-shell main .max-w-7xl,
+  html[data-layout="full"] .dashboard-shell main .max-w-6xl,
+  html[data-layout="full"] .site-shell .max-w-7xl,
+  html[data-layout="full"] .site-shell .max-w-6xl,
+  html[data-layout="full"] .site-shell .max-w-5xl {
+    max-width: none !important;
+  }
+
+  html[data-layout="centered"] .site-shell .layout-content-width.max-w-none {
+    max-width: 80rem;
   }
 
   /* Touch-friendly horizontal table scroller */
