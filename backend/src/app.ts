@@ -44,53 +44,27 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export function createApp() {
   const app = express();
 
-  const defaultOrigins = [
-    "https://dhapti.com",
-    "https://www.dhapti.com",
-    "https://dhapti-university.vercel.app",
-    "https://dhapti-university-77po.vercel.app",
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-  ];
-  const envOrigins = (process.env.FRONTEND_ORIGIN || "")
-    .split(",")
-    .map((o) => o.trim())
-    .filter(Boolean);
-  const allowedOrigins = new Set([...defaultOrigins, ...envOrigins]);
-  const allowAllOrigins =
-    process.env.CORS_ALLOW_ALL === "true" ||
-    process.env.CORS_ALLOW_ALL === "1";
+  /**
+   * Permissive CORS — reflects the request Origin so dhapti.com, www,
+   * Vercel previews, and localhost all pass preflight with credentials.
+   */
+  const corsOptions: cors.CorsOptions = {
+    origin: true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+    ],
+    optionsSuccessStatus: 204,
+  };
 
-  app.use(
-    cors({
-      origin(requestOrigin, callback) {
-        // Non-browser / same-origin / health checks
-        if (!requestOrigin) {
-          callback(null, true);
-          return;
-        }
-        if (allowAllOrigins || allowedOrigins.has(requestOrigin)) {
-          callback(null, true);
-          return;
-        }
-        // Vercel preview deployments: https://*.vercel.app
-        try {
-          const host = new URL(requestOrigin).hostname;
-          if (host.endsWith(".vercel.app")) {
-            callback(null, true);
-            return;
-          }
-        } catch {
-          /* ignore */
-        }
-        console.warn(`[cors] Blocked origin: ${requestOrigin}`);
-        callback(null, false);
-      },
-      credentials: true,
-    })
-  );
+  app.use(cors(corsOptions));
+  // Express 5: cors() middleware already answers OPTIONS preflight —
+  // do not register app.options('*') (path-to-regexp rejects bare '*').
+
   app.use(express.json({ limit: "2mb" }));
   app.use(
     "/uploads",

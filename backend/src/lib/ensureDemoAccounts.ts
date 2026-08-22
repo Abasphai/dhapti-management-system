@@ -96,64 +96,85 @@ export async function ensureDemoAccounts() {
     });
 
     if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email,
-          passwordHash,
-          role: demo.role,
-          status: "ACTIVE",
-          ...(demo.adminProfile
-            ? {
-                admin: {
-                  create: { fullName: demo.fullName, email },
-                },
-              }
-            : {}),
-          ...(demo.teacher
-            ? {
-                teacher: {
-                  create: {
-                    facultyCode: `DHAPTI-FAC-${Date.now().toString(36).slice(-6).toUpperCase()}`,
-                    fullName: demo.fullName,
-                    email,
-                    designation: "Lecturer",
-                    departmentId: csDept?.id ?? null,
+      try {
+        user = await prisma.user.create({
+          data: {
+            email,
+            passwordHash,
+            role: demo.role,
+            status: "ACTIVE",
+            ...(demo.adminProfile
+              ? {
+                  admin: {
+                    create: { fullName: demo.fullName, email },
                   },
-                },
-              }
-            : {}),
-          ...(demo.student
-            ? {
-                student: {
-                  create: {
-                    studentCode: `DHAPTI-STU-${Date.now().toString(36).slice(-6).toUpperCase()}`,
-                    fullName: demo.fullName,
-                    email,
-                    departmentId: csDept?.id ?? null,
-                    facultyId: csDept?.facultyId ?? null,
-                    semester: "4",
-                    program: "BSc Computer Science",
+                }
+              : {}),
+            ...(demo.teacher
+              ? {
+                  teacher: {
+                    create: {
+                      facultyCode: `DHAPTI-FAC-${Date.now().toString(36).slice(-6).toUpperCase()}`,
+                      fullName: demo.fullName,
+                      email,
+                      designation: "Lecturer",
+                      departmentId: csDept?.id ?? null,
+                    },
                   },
-                },
-              }
-            : {}),
-          ...(demo.departmentScope && csDept
-            ? {
-                departmentScope: {
-                  create: { departmentId: csDept.id },
-                },
-              }
-            : {}),
-        },
-        include: {
-          admin: true,
-          teacher: true,
-          student: true,
-          departmentScope: true,
-        },
-      });
-      console.log(`Dev ensure: created ${email} (${demo.role})`);
-      continue;
+                }
+              : {}),
+            ...(demo.student
+              ? {
+                  student: {
+                    create: {
+                      studentCode: `DHAPTI-STU-${Date.now().toString(36).slice(-6).toUpperCase()}`,
+                      fullName: demo.fullName,
+                      email,
+                      departmentId: csDept?.id ?? null,
+                      facultyId: csDept?.facultyId ?? null,
+                      semester: "4",
+                      program: "BSc Computer Science",
+                    },
+                  },
+                }
+              : {}),
+            ...(demo.departmentScope && csDept
+              ? {
+                  departmentScope: {
+                    create: { departmentId: csDept.id },
+                  },
+                }
+              : {}),
+          },
+          include: {
+            admin: true,
+            teacher: true,
+            student: true,
+            departmentScope: true,
+          },
+        });
+        console.log(`Dev ensure: created ${email} (${demo.role})`);
+        continue;
+      } catch (createErr) {
+        // Parallel login/tests may race on the same demo email
+        const code =
+          createErr &&
+          typeof createErr === "object" &&
+          "code" in createErr
+            ? String((createErr as { code?: string }).code)
+            : "";
+        if (code !== "P2002") throw createErr;
+        user = await prisma.user.findUnique({
+          where: { email },
+          include: {
+            admin: true,
+            teacher: true,
+            student: true,
+            departmentScope: true,
+          },
+        });
+        if (!user) throw createErr;
+      }
     }
 
     const ok = await bcrypt.compare(DEMO_PASSWORD, user.passwordHash);
