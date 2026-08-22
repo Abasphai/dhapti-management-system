@@ -11,6 +11,7 @@ import {
   Sun,
   Menu,
   X,
+  Settings,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -26,10 +27,17 @@ const LANG_OPTIONS: { code: Lang; label: string }[] = [
   { code: 'ar', label: 'AR' },
 ];
 
+const mobileLinkClass =
+  'block border-b border-white/5 py-3 text-sm font-extrabold uppercase tracking-wider !text-white transition-colors hover:!text-orange-400';
+
+const mobileSubLinkClass =
+  'block py-2 pl-4 text-xs font-semibold !text-slate-300 transition-colors hover:!text-orange-400';
+
 export const Navbar = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { lang, setLang } = useLanguage();
   const isDark = theme === 'dark';
@@ -53,7 +61,7 @@ export const Navbar = () => {
       { label: 'Diploma & Certificates', href: '/programs#diploma' },
       { label: 'Academic Calendar', href: '/pages/downloads' },
     ],
-    FACULTY: [
+    FACULTIES: [
       { label: 'Faculty of Computing & IT', href: '/faculties#computing' },
       { label: 'Faculty of Medicine & Health', href: '/faculties#medicine' },
       { label: 'Faculty of Business & Economics', href: '/faculties#business' },
@@ -80,6 +88,12 @@ export const Navbar = () => {
     setMobileExpanded(null);
   };
 
+  const openMobileSettings = () => {
+    closeMobile();
+    // Allow drawer exit animation to start before modal mounts
+    window.setTimeout(() => setSettingsOpen(true), 180);
+  };
+
   useEffect(() => {
     if (!isMobileOpen) return;
     const prev = document.body.style.overflow;
@@ -91,7 +105,7 @@ export const Navbar = () => {
 
   return (
     <header className="fixed left-0 top-0 z-[9999] w-full max-w-full font-sans shadow-md">
-      {/* 1. TOP BAR */}
+      {/* 1. TOP BAR — portals only on desktop */}
       <div className="flex max-w-full items-center justify-between border-b border-white/10 bg-[#00152e] px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white sm:px-6 md:px-12 md:text-xs">
         <div className="flex min-w-0 items-center gap-2">
           <Home size={14} className="shrink-0 text-emerald-400" />
@@ -116,18 +130,17 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* 2. MAIN NAVBAR — overflow-visible so dropdowns are not clipped */}
+      {/* 2. MAIN NAVBAR */}
       <div className="relative z-[9999] flex max-w-full items-center justify-between gap-3 overflow-visible border-b-[3px] border-[#16a34a] bg-white px-4 py-3 text-[#002147] sm:px-6 md:px-12">
-        {/* Left: Logo only on mobile/tablet */}
         <Link to="/" className="flex shrink-0 items-center">
           <img
             src="/dhapti-logo.png"
             alt="Dhapti Logo"
-            className="h-10 w-auto object-contain md:h-12 xl:h-14"
+            className="h-11 w-auto object-contain md:h-12 xl:h-14"
           />
         </Link>
 
-        {/* Desktop nav — 100% hidden below xl (< 1280px) */}
+        {/* Desktop nav — hidden below xl */}
         <nav
           className="relative z-[9999] mr-6 hidden items-center gap-6 overflow-visible text-[13px] font-extrabold tracking-wide text-[#002147] xl:flex"
           aria-label="Primary"
@@ -191,7 +204,7 @@ export const Navbar = () => {
 
         {/* Right actions */}
         <div className="flex shrink-0 items-center gap-2">
-          {/* Desktop-only: Settings + Theme */}
+          {/* Desktop-only controls */}
           <div className="hidden items-center gap-1 border-l border-slate-200/60 pl-4 xl:flex">
             <LayoutSettingsPopover
               publicSite
@@ -214,11 +227,11 @@ export const Navbar = () => {
             </Link>
           </div>
 
-          {/* Mobile/tablet (< xl): Apply Now + Hamburger ONLY */}
+          {/* Mobile/tablet: Apply Now + Hamburger ONLY — no settings/theme/lang */}
           <div className="flex items-center gap-2 xl:hidden">
             <Link
               to="/admissions"
-              className="rounded-lg bg-[#16a34a] px-3.5 py-1.5 text-[11px] font-black uppercase tracking-wider text-white shadow-md transition-all hover:bg-[#15803d] active:scale-95"
+              className="rounded-xl bg-[#16a34a] px-3.5 py-1.5 text-xs font-black uppercase text-white shadow-md transition-all hover:bg-[#15803d]"
             >
               Apply Now
             </Link>
@@ -235,7 +248,7 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* MOBILE / TABLET DRAWER */}
+      {/* MOBILE DRAWER */}
       <AnimatePresence>
         {isMobileOpen && (
           <>
@@ -246,7 +259,7 @@ export const Navbar = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[1001] bg-black/50 xl:hidden"
+              className="fixed inset-0 z-[10000] bg-black/70 backdrop-blur-sm xl:hidden"
               onClick={closeMobile}
             />
 
@@ -255,91 +268,70 @@ export const Navbar = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'tween', duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed inset-y-0 right-0 z-[1002] flex w-[min(100%,320px)] max-w-full flex-col overflow-x-hidden bg-[#00152e] text-white shadow-2xl xl:hidden"
+              className="fixed inset-y-0 right-0 z-[10001] flex w-[85%] max-w-xs flex-col overflow-y-auto bg-[#00152e] p-6 text-white shadow-2xl [-webkit-overflow-scrolling:touch] xl:hidden"
               role="dialog"
               aria-modal="true"
               aria-label="Mobile navigation"
+              style={{ color: '#ffffff' }}
             >
-              <div className="flex items-center justify-between border-b border-white/10 px-4 py-4">
-                <img
-                  src="/dhapti-logo.png"
-                  alt="Dhapti"
-                  className="h-10 w-auto object-contain brightness-0 invert"
-                />
+              {/* Top: Logo + title + close */}
+              <div className="mb-6 flex items-start justify-between gap-3 border-b border-white/10 pb-5">
+                <div className="flex items-center gap-3">
+                  <img
+                    src="/dhapti-logo.png"
+                    alt="Dhapti University"
+                    className="h-10 w-auto object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/dhapti-logo.jpg";
+                    }}
+                  />
+                  <div>
+                    <span className="block text-base font-black tracking-tight text-white">
+                      DHAPTI
+                    </span>
+                    <span className="block text-[9px] font-bold uppercase tracking-wider text-orange-400">
+                      UNIVERSITY
+                    </span>
+                  </div>
+                </div>
                 <button
                   type="button"
                   onClick={closeMobile}
-                  className="rounded-xl p-2 text-white transition-colors hover:bg-white/10"
+                  className="shrink-0 rounded-xl p-2 !text-white transition-colors hover:bg-white/10"
                   aria-label="Close menu"
                 >
-                  <X size={24} />
+                  <X size={24} className="!text-white" />
                 </button>
               </div>
 
-              {/* Controls: Settings · Theme · Language */}
-              <div className="flex flex-wrap items-center gap-2 border-b border-white/10 px-4 py-3">
-                <LayoutSettingsPopover
-                  publicSite
-                  triggerClassName="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white hover:bg-white/10"
-                />
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white transition-colors hover:bg-white/10"
-                  aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                >
-                  {isDark ? <Sun size={18} /> : <Moon size={18} />}
-                </button>
-                <div
-                  className="ml-auto flex overflow-hidden rounded-lg border border-white/15"
-                  role="group"
-                  aria-label="Language"
-                >
-                  {LANG_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.code}
-                      type="button"
-                      onClick={() => setLang(opt.code)}
-                      className={cn(
-                        'px-2.5 py-2 text-[11px] font-black tracking-wide transition-colors',
-                        lang === opt.code
-                          ? 'bg-[#16a34a] text-white'
-                          : 'bg-transparent text-slate-300 hover:bg-white/10 hover:text-white'
-                      )}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <nav className="flex-1 overflow-y-auto overflow-x-hidden p-4 [-webkit-overflow-scrolling:touch]">
-                <Link
-                  to="/"
-                  onClick={closeMobile}
-                  className="block rounded-xl px-3 py-3 text-sm font-bold uppercase tracking-wide transition-colors hover:bg-white/10"
-                >
+              {/* Middle: high-contrast nav links */}
+              <nav className="mb-6 flex-1" aria-label="Mobile">
+                <Link to="/" onClick={closeMobile} className={mobileLinkClass}>
                   Home
                 </Link>
 
                 {Object.keys(menuData).map((menuKey) => {
                   const open = mobileExpanded === menuKey;
                   return (
-                    <div key={menuKey} className="border-t border-white/10">
+                    <div key={menuKey}>
                       <button
                         type="button"
                         onClick={() =>
                           setMobileExpanded(open ? null : menuKey)
                         }
-                        className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm font-bold uppercase tracking-wide transition-colors hover:bg-white/10"
+                        className={cn(
+                          mobileLinkClass,
+                          'flex w-full items-center justify-between text-left'
+                        )}
                         aria-expanded={open}
                       >
-                        <span>{menuKey}</span>
+                        <span className="!text-white">{menuKey}</span>
                         <ChevronDown
                           size={16}
-                          className={`shrink-0 transition-transform ${
-                            open ? 'rotate-180 text-emerald-400' : ''
-                          }`}
+                          className={cn(
+                            'shrink-0 !text-white/80 transition-transform',
+                            open && 'rotate-180 !text-orange-400'
+                          )}
                         />
                       </button>
                       <AnimatePresence>
@@ -348,14 +340,14 @@ export const Navbar = () => {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden pb-2 pl-1"
+                            className="overflow-hidden border-b border-white/5 pb-2"
                           >
                             {menuData[menuKey].map((item) => (
                               <Link
                                 key={item.href + item.label}
                                 to={item.href}
                                 onClick={closeMobile}
-                                className="block rounded-lg px-3 py-2.5 text-xs font-semibold text-slate-200 transition-colors hover:bg-white/10 hover:text-emerald-400"
+                                className={mobileSubLinkClass}
                               >
                                 {item.label}
                               </Link>
@@ -370,32 +362,113 @@ export const Navbar = () => {
                 <Link
                   to="/contact"
                   onClick={closeMobile}
-                  className="mt-1 block rounded-xl border-t border-white/10 px-3 py-3 text-sm font-bold uppercase tracking-wide transition-colors hover:bg-white/10"
+                  className={mobileLinkClass}
                 >
                   Contact
                 </Link>
+              </nav>
 
-                <div className="mt-3 border-t border-white/10 pt-3">
-                  <p className="px-3 pb-2 text-[10px] font-black uppercase tracking-widest text-emerald-400">
+              {/* Bottom: controls + portals card */}
+              <div className="mt-auto space-y-4 rounded-2xl border border-white/10 bg-[#001024] p-4 shadow-inner">
+                <div>
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] !text-slate-400">
+                    Language
+                  </p>
+                  <div
+                    className="flex overflow-hidden rounded-xl border border-white/20"
+                    role="group"
+                    aria-label="Language"
+                  >
+                    {LANG_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.code}
+                        type="button"
+                        onClick={() => setLang(opt.code)}
+                        className={cn(
+                          'flex-1 px-3 py-2.5 text-xs font-black tracking-wide transition-colors',
+                          lang === opt.code
+                            ? 'bg-[#16a34a] !text-white'
+                            : 'bg-transparent !text-slate-300 hover:bg-white/10 hover:!text-white'
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 !text-white transition-colors hover:bg-white/10"
+                    aria-label={
+                      isDark ? 'Switch to light mode' : 'Switch to dark mode'
+                    }
+                  >
+                    {isDark ? (
+                      <Sun size={18} className="!text-orange-400" />
+                    ) : (
+                      <Moon size={18} className="!text-white" />
+                    )}
+                    <span className="text-xs font-bold uppercase tracking-wide !text-white">
+                      {isDark ? 'Light' : 'Dark'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={openMobileSettings}
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/5 !text-white transition-colors hover:bg-white/10"
+                    aria-label="Layout settings"
+                    title="Layout Settings"
+                  >
+                    <Settings className="h-5 w-5 !text-white" />
+                  </button>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] !text-slate-400">
                     Portals
                   </p>
-                  {portalLinks.map((portal) => (
-                    <Link
-                      key={portal.href}
-                      to={portal.href}
-                      onClick={closeMobile}
-                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold transition-colors hover:bg-white/10"
-                    >
-                      <portal.icon size={16} className="text-emerald-400" />
-                      {portal.label}
-                    </Link>
-                  ))}
+                  <div className="space-y-1">
+                    {portalLinks.map((portal) => (
+                      <Link
+                        key={portal.href}
+                        to={portal.href}
+                        onClick={closeMobile}
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold !text-white transition-colors hover:bg-white/10 hover:!text-orange-400"
+                      >
+                        <portal.icon
+                          size={16}
+                          className="shrink-0 !text-emerald-400"
+                        />
+                        {portal.label}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </nav>
+
+                <Link
+                  to="/admissions"
+                  onClick={closeMobile}
+                  className="flex w-full items-center justify-center rounded-xl bg-[#16a34a] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white shadow-md transition hover:bg-[#15803d]"
+                >
+                  Apply Now
+                </Link>
+              </div>
             </motion.aside>
           </>
         )}
       </AnimatePresence>
+
+      {/* Mobile layout settings — centered modal, not trapped in drawer */}
+      <LayoutSettingsPopover
+        publicSite
+        presentation="modal"
+        hideTrigger
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+      />
     </header>
   );
 };
