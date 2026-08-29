@@ -1,3 +1,4 @@
-import app from "../backend/src/app";
+import "dotenv/config";
+import app from "../backend/dist/app.js";
 
 export default app;
