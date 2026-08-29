@@ -72,7 +72,7 @@ export async function calculateFinalNumericForEnrollment(enrollmentId: string) {
   const classSectionId = enrollment.classSectionId;
   const studentId = enrollment.studentId;
   const weights = await validateWeightsForCalculation(classSectionId);
-  if (!weights.ok) {
+  if (weights.ok === false) {
     return {
       ok: false as const,
       code: weights.code,
@@ -297,7 +297,7 @@ export async function upsertBiuGradedResult(input: {
     ...input.components,
     passingCutoff: settings.passingGradeCutoff,
   });
-  if (!evaluated.ok) {
+  if (evaluated.ok === false) {
     return {
       ok: false as const,
       code: "BAD_REQUEST" as const,
