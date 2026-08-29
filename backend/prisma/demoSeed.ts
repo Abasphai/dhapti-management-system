@@ -1,6 +1,6 @@
 /**
  * Full demo seed for local development & automated tests.
- * Production / Render: use `npm run db:seed` (cleanSeed) instead.
+ * Production / hosted: use `npm run db:seed` (cleanSeed) instead.
  *
  * Demo logins (password: DHAPTI@2026):
  *   admin@dhapti.edu.so, mohamed.ali@dhapti.edu.so, mohamudcade143@gmail.com

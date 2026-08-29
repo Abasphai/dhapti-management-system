@@ -124,7 +124,7 @@ authRouter.post("/login", async (req, res) => {
           res,
           503,
           "INTERNAL_ERROR",
-          "Database unavailable. Server waking up, please retry."
+          "Database unavailable. Please try again in a moment."
         );
       }
     } else if (
@@ -149,7 +149,7 @@ authRouter.post("/login", async (req, res) => {
         res,
         503,
         "INTERNAL_ERROR",
-        "Database unavailable. Server waking up, please retry."
+        "Database unavailable. Please try again in a moment."
       );
     }
   }

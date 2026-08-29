@@ -10,6 +10,7 @@
     "dev:web": "vite",
     "build": "npm run build:api && tsc -b && vite build",
     "build:api": "tsc -p backend/tsconfig.json",
+    "vercel-build": "npm run build",
     "lint": "eslint .",
     "preview": "vite preview",
     "postinstall": "prisma generate --schema=./backend/prisma/schema.prisma",

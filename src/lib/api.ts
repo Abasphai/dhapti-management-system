@@ -1,34 +1,13 @@
 /**
- * API client — always prefers same-origin `/api`:
+ * API client — always same-origin `/api`:
  * - Local: Vite proxy → Express :4000
  * - Production: Vercel serverless (`api/index.ts`)
  */
 
-/**
- * Relative `/api` for Vercel serverless. External absolute URLs (e.g. stale
- * Render `VITE_API_URL`) are ignored so requests stay on dhapti.com/api/*.
- */
-const _envApi = String(import.meta.env.VITE_API_URL ?? "")
-  .trim()
-  .replace(/\/$/, "");
-export const API_BASE_URL =
-  !_envApi ||
-  (/^https?:\/\//i.test(_envApi) &&
-    !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?(\/|$)/i.test(_envApi))
-    ? "/api"
-    : _envApi;
+/** Relative same-origin API — never use external absolute URLs in production. */
+export const API_BASE_URL = "/api";
 
-/** Direct backend — local-dev fallback only when Vite proxy is down. */
-const DIRECT_API_BASE = "http://127.0.0.1:4000/api";
-
-/** Allow cold-start / DB wake time on serverless. */
-const REQUEST_TIMEOUT_MS = 60_000;
-/** Show cold-start feedback once the request has been waiting this long. */
-const COLD_START_TOAST_MS = 5_000;
-const COLD_START_MESSAGE =
-  "Waking up secure server, please wait a moment...";
-
-let activeApiBase = API_BASE_URL;
+const REQUEST_TIMEOUT_MS = 30_000;
 
 export const TOKEN_KEY = "dhapti-auth-token";
 export const USER_KEY = "dhapti-auth-user";
@@ -170,54 +149,10 @@ function maybeHandleSessionExpiry(
   handleSessionExpired();
 }
 
-function candidateBases(): string[] {
-  // Production / deployed host: never leave same-origin /api
-  if (typeof window !== "undefined") {
-    const host = window.location.hostname;
-    const isLocal = host === "localhost" || host === "127.0.0.1";
-    if (!isLocal) {
-      return [API_BASE_URL];
-    }
-  }
-  const bases = [activeApiBase, API_BASE_URL, DIRECT_API_BASE];
-  return [...new Set(bases.filter(Boolean))];
+function apiUrl(path: string): string {
+  return `${API_BASE_URL}${path}`;
 }
 
-function isNetworkFailure(err: unknown): boolean {
-  if (err instanceof TypeError) return true;
-  if (err instanceof DOMException && err.name === "AbortError") return true;
-  if (err instanceof Error) {
-    const m = err.message.toLowerCase();
-    return (
-      m.includes("failed to fetch") ||
-      m.includes("networkerror") ||
-      m.includes("load failed") ||
-      m.includes("network request failed") ||
-      m.includes("aborted") ||
-      m.includes("timeout")
-    );
-  }
-  return false;
-}
-
-function showColdStartToast() {
-  void import("sonner").then(({ toast }) => {
-    toast.loading(COLD_START_MESSAGE, {
-      id: "api-cold-start",
-      duration: Infinity,
-    });
-  });
-}
-
-function dismissColdStartToast() {
-  void import("sonner").then(({ toast }) => {
-    toast.dismiss("api-cold-start");
-  });
-}
-
-/**
- * Fetch with 60s timeout. After 5s without a response, show a Render cold-start toast.
- */
 async function fetchWithTimeout(
   url: string,
   init: RequestInit = {}
@@ -240,65 +175,34 @@ async function fetchWithTimeout(
     controller.abort();
   }, REQUEST_TIMEOUT_MS);
 
-  const coldStartId = window.setTimeout(() => {
-    showColdStartToast();
-  }, COLD_START_TOAST_MS);
-
   try {
     return await fetch(url, {
       ...init,
       signal: controller.signal,
     });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new ApiError(
+        0,
+        "Request timed out. Please try again.",
+        "NETWORK_ERROR",
+        { timeoutMs: REQUEST_TIMEOUT_MS }
+      );
+    }
+    throw new ApiError(
+      0,
+      "Unable to reach API. Check your connection and try again.",
+      "NETWORK_ERROR",
+      {
+        cause: err instanceof Error ? err.message : String(err),
+      }
+    );
   } finally {
     window.clearTimeout(timeoutId);
-    window.clearTimeout(coldStartId);
     if (externalSignal) {
       externalSignal.removeEventListener("abort", onExternalAbort);
     }
-    dismissColdStartToast();
   }
-}
-
-async function fetchWithFallback(
-  path: string,
-  init: RequestInit
-): Promise<Response> {
-  const bases = candidateBases();
-  let lastError: unknown;
-
-  for (let i = 0; i < bases.length; i++) {
-    const base = bases[i]!;
-    try {
-      const res = await fetchWithTimeout(`${base}${path}`, init);
-      activeApiBase = base;
-      return res;
-    } catch (err) {
-      lastError = err;
-      // Timeout: do not burn another 60s on the next base.
-      if (err instanceof DOMException && err.name === "AbortError") {
-        break;
-      }
-      if (!isNetworkFailure(err)) throw err;
-      // try next base on true network failure
-    }
-  }
-
-  const timedOut =
-    lastError instanceof DOMException && lastError.name === "AbortError";
-
-  throw new ApiError(
-    0,
-    timedOut
-      ? "Server waking up, please retry. The API took too long to respond."
-      : "Unable to reach API. Server waking up, please retry in a moment.",
-    "NETWORK_ERROR",
-    {
-      tried: bases,
-      timeoutMs: REQUEST_TIMEOUT_MS,
-      cause:
-        lastError instanceof Error ? lastError.message : String(lastError ?? ""),
-    }
-  );
 }
 
 async function readResponsePayload(
@@ -312,7 +216,6 @@ async function readResponsePayload(
       ? (JSON.parse(text) as Record<string, unknown>)
       : {};
   } catch {
-    // Never fail with "could not parse" — use raw body as the error message
     data = {
       error: text?.trim() || "Server returned an unparsed error",
     };
@@ -321,7 +224,7 @@ async function readResponsePayload(
   if (looksLikeHtml(String(data.error ?? text))) {
     return {
       error:
-        "API misconfigured (received HTML instead of JSON). Check that /api is routed to the Vercel serverless function.",
+        "API misconfigured (received HTML instead of JSON). Ensure /api routes to the Vercel serverless function.",
       code: "BAD_GATEWAY",
     };
   }
@@ -343,7 +246,7 @@ export async function api<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const res = await fetchWithFallback(path, {
+  const res = await fetchWithTimeout(apiUrl(path), {
     ...options,
     headers,
   });
@@ -362,8 +265,7 @@ export async function api<T>(
   return data as T;
 }
 
-
-/** Multipart upload via existing API base + JWT (do not set Content-Type). */
+/** Multipart upload via same-origin /api + JWT (do not set Content-Type). */
 export async function apiUpload<T>(
   path: string,
   formData: FormData,
@@ -375,95 +277,63 @@ export async function apiUpload<T>(
     return api<T>(path, { method: "POST", body: formData });
   }
 
-  const bases = candidateBases();
-
   return new Promise<T>((resolve, reject) => {
-    let baseIndex = 0;
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", apiUrl(path));
+    xhr.timeout = REQUEST_TIMEOUT_MS;
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
-    const attempt = () => {
-      const base = bases[baseIndex] ?? DIRECT_API_BASE;
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", `${base}${path}`);
-      xhr.timeout = REQUEST_TIMEOUT_MS;
-      if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-
-      const coldStartId = window.setTimeout(() => {
-        showColdStartToast();
-      }, COLD_START_TOAST_MS);
-
-      const clearUploadWait = () => {
-        window.clearTimeout(coldStartId);
-        dismissColdStartToast();
-      };
-
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          onProgress(Math.round((event.loaded / event.total) * 100));
-        }
-      };
-      xhr.onload = () => {
-        clearUploadWait();
-        activeApiBase = base;
-        const text = xhr.responseText || "";
-        let data: Record<string, unknown>;
-        try {
-          data = text.trim()
-            ? (JSON.parse(text) as Record<string, unknown>)
-            : {};
-        } catch {
-          data = { error: text || "Server returned an unparsed error" };
-        }
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(data as T);
-          return;
-        }
-        const message =
-          (typeof data.error === "string" && data.error) ||
-          (typeof data.message === "string" && data.message) ||
-          "Request failed";
-        reject(
-          new ApiError(
-            xhr.status,
-            message,
-            typeof data.code === "string" ? data.code : undefined,
-            data
-          )
-        );
-      };
-      xhr.ontimeout = () => {
-        clearUploadWait();
-        if (baseIndex < bases.length - 1) {
-          baseIndex += 1;
-          attempt();
-          return;
-        }
-        reject(
-          new ApiError(
-            0,
-            "Server waking up, please retry. The API took too long to respond.",
-            "NETWORK_ERROR"
-          )
-        );
-      };
-      xhr.onerror = () => {
-        clearUploadWait();
-        if (baseIndex < bases.length - 1) {
-          baseIndex += 1;
-          attempt();
-          return;
-        }
-        reject(
-          new ApiError(
-            0,
-            "Unable to reach API. Server waking up, please retry in a moment.",
-            "NETWORK_ERROR"
-          )
-        );
-      };
-      xhr.send(formData);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        onProgress(Math.round((event.loaded / event.total) * 100));
+      }
     };
-
-    attempt();
+    xhr.onload = () => {
+      const text = xhr.responseText || "";
+      let data: Record<string, unknown>;
+      try {
+        data = text.trim()
+          ? (JSON.parse(text) as Record<string, unknown>)
+          : {};
+      } catch {
+        data = { error: text || "Server returned an unparsed error" };
+      }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(data as T);
+        return;
+      }
+      const message =
+        (typeof data.error === "string" && data.error) ||
+        (typeof data.message === "string" && data.message) ||
+        "Request failed";
+      reject(
+        new ApiError(
+          xhr.status,
+          message,
+          typeof data.code === "string" ? data.code : undefined,
+          data
+        )
+      );
+    };
+    xhr.ontimeout = () => {
+      reject(
+        new ApiError(
+          0,
+          "Request timed out. Please try again.",
+          "NETWORK_ERROR"
+        )
+      );
+    };
+    xhr.onerror = () => {
+      reject(
+        new ApiError(
+          0,
+          "Unable to reach API. Check your connection and try again.",
+          "NETWORK_ERROR"
+        )
+      );
+    };
+    xhr.send(formData);
   });
 }
 
@@ -473,7 +343,7 @@ export async function apiDownload(path: string, fallbackName: string) {
   const token = getToken();
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const res = await fetchWithFallback(path, { headers });
+  const res = await fetchWithTimeout(apiUrl(path), { headers });
   if (!res.ok) {
     const text = await res.text();
     let errorData: Record<string, unknown>;
@@ -512,7 +382,7 @@ export async function apiBlobUrl(path: string): Promise<string> {
   const token = getToken();
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const res = await fetchWithFallback(path, { headers });
+  const res = await fetchWithTimeout(apiUrl(path), { headers });
   if (!res.ok) {
     const text = await res.text();
     let errorData: Record<string, unknown>;
@@ -538,7 +408,7 @@ export async function apiBlobUrl(path: string): Promise<string> {
   return URL.createObjectURL(blob);
 }
 
-/** Current resolved API base (after successful fallback, if any). */
+/** Same-origin API base (always `/api`). */
 export function getActiveApiBase() {
-  return activeApiBase || API_BASE_URL;
+  return API_BASE_URL;
 }
