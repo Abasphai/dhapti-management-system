@@ -1,26 +1,29 @@
 import "dotenv/config";
-import express from "express";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import backendApp from "../backend/dist/app.js";
 
-/**
- * Single Vercel serverless entry (`api/index.ts` → `/api`).
- * vercel.json rewrites ALL `/api/*` here so GET/POST/PUT/DELETE/OPTIONS
- * reach Express (catch-all files often return 405 on POST).
- */
-const app = express();
+type HttpHandler = (
+  req: IncomingMessage,
+  res: ServerResponse
+) => void;
 
-app.use((req, _res, next) => {
+/** Ensure Express sees full `/api/...` paths after Vercel rewrite → `/api`. */
+function normalizeApiPath(req: IncomingMessage) {
   const url = req.url ?? "/";
-  if (!url.startsWith("/api")) {
-    const qIndex = url.indexOf("?");
-    const path = qIndex === -1 ? url : url.slice(0, qIndex);
-    const qs = qIndex === -1 ? "" : url.slice(qIndex);
-    const normalized = path.startsWith("/") ? path : `/${path}`;
-    req.url = `/api${normalized}${qs}`;
-  }
-  next();
-});
+  if (url.startsWith("/api")) return;
 
-app.use(backendApp);
+  const qIndex = url.indexOf("?");
+  const path = qIndex === -1 ? url : url.slice(0, qIndex);
+  const qs = qIndex === -1 ? "" : url.slice(qIndex);
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  req.url = `/api${normalized}${qs}`;
+}
 
-export default app;
+/**
+ * Single Vercel serverless entry.
+ * vercel.json rewrites every `/api/*` request here (all HTTP methods).
+ */
+export default function handler(req: IncomingMessage, res: ServerResponse) {
+  normalizeApiPath(req);
+  (backendApp as HttpHandler)(req, res);
+}
