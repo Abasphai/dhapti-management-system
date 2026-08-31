@@ -1,7 +1,7 @@
 /**
  * Sanitize HTML for CMS rich-text storage/display (XSS-safe allowlist).
  */
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
 const ALLOWED_TAGS = [
   "p",
@@ -23,13 +23,13 @@ const ALLOWED_TAGS = [
   "span",
 ];
 
-const ALLOWED_ATTR = ["href", "target", "rel", "class"];
-
 export function sanitizeCmsHtml(dirty: string): string {
-  return DOMPurify.sanitize(dirty ?? "", {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    ALLOW_DATA_ATTR: false,
+  return sanitizeHtml(dirty ?? "", {
+    allowedTags: ALLOWED_TAGS,
+    allowedAttributes: {
+      a: ["href", "target", "rel"],
+      "*": ["class"],
+    },
   });
 }
 
