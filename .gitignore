@@ -23,10 +23,6 @@ backend/.env.*
 # Vercel local project link (re-created when you run `vercel link`)
 .vercel
 
-# Generated Vercel API bundle (built by scripts/build-vercel-api.mjs)
-api/index.cjs
-api/index.cjs.map
-
 # Private uploaded assignment files (Phase 1F-B)
 backend/storage/
 backend/uploads/

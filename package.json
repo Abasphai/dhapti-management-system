@@ -12,7 +12,7 @@
     "dev:all": "npm run dev:api & npm run dev",
     "dev:web": "vite",
     "build": "npm run build:api && tsc -b && vite build",
-    "build:api": "prisma generate --schema=./backend/prisma/schema.prisma && tsc -p backend/tsconfig.json && node scripts/build-vercel-api.mjs",
+    "build:api": "prisma generate --schema=./backend/prisma/schema.prisma && tsc -p backend/tsconfig.json",
     "vercel-build": "npm run build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -76,7 +76,6 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "esbuild": "^0.25.12",
     "vite": "^6.3.5"
   }
 }
