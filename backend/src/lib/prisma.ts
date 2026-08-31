@@ -17,9 +17,4 @@ export const prisma =
         : ["error"],
   });
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-} else {
-  // Keep singleton on warm serverless instances
-  globalForPrisma.prisma = prisma;
-}
+globalForPrisma.prisma = prisma;
