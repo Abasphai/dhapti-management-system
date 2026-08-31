@@ -1,8 +1,9 @@
 generator client {
-  provider      = "prisma-client-js"
+  provider   = "prisma-client-js"
   // Generate into root node_modules so Vercel serverless + root @prisma/client resolve correctly
-  output        = "../../node_modules/.prisma/client"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  output     = "../../node_modules/.prisma/client"
+  // Rust-free client — no libquery_engine-*.so.node binary to bundle on Vercel
+  engineType = "client"
 }
 
 datasource db {

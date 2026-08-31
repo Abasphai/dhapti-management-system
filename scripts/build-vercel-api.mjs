@@ -16,8 +16,14 @@ await esbuild.build({
   format: "cjs",
   outfile,
   sourcemap: true,
-  // Prisma query engine must load from node_modules at runtime (not bundled)
-  external: ["@prisma/client", ".prisma/client", "prisma"],
+  // Prisma generated client + pg adapter (no Rust engine binary)
+  external: [
+    "@prisma/client",
+    ".prisma/client",
+    "prisma",
+    "@prisma/adapter-pg",
+    "pg",
+  ],
   define: {
     "import.meta.url": "_importMetaUrl",
   },

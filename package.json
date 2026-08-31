@@ -22,6 +22,7 @@
     "db:seed": "npm --prefix backend run db:seed"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^6.19.3",
     "@prisma/client": "^6.19.3",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-progress": "^1.1.16",
@@ -44,6 +45,7 @@
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.511.0",
     "multer": "^2.0.1",
+    "pg": "^8.16.3",
     "qrcode": "^1.5.4",
     "prisma": "^6.19.3",
     "react": "^19.1.0",
@@ -63,6 +65,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.15.29",
+    "@types/pg": "^8.15.5",
     "@types/qrcode": "^1.5.6",
     "@types/sanitize-html": "^2.16.0",
     "@types/react": "^19.1.2",
