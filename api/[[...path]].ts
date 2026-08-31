@@ -1,12 +1,30 @@
 import "dotenv/config";
+import express from "express";
 import serverless from "serverless-http";
-import app from "../backend/dist/app.js";
+import backendApp from "../backend/dist/app.js";
 
 /**
- * Vercel optional catch-all — handles `/api`, `/api/health`, `/api/auth/login`, etc.
- * Express routes in backend/src/app.ts are mounted under `/api/*`.
+ * Bridge layer for Vercel serverless:
+ * - Optional catch-all `api/[[...path]].ts` may deliver paths without `/api` prefix
+ * - Express routes in backend are mounted at `/api/*`
  */
-const handler = serverless(app, {
+const bridge = express();
+
+bridge.use((req, _res, next) => {
+  const url = req.url ?? "/";
+  if (!url.startsWith("/api")) {
+    const qIndex = url.indexOf("?");
+    const path = qIndex === -1 ? url : url.slice(0, qIndex);
+    const qs = qIndex === -1 ? "" : url.slice(qIndex);
+    const normalized = path.startsWith("/") ? path : `/${path}`;
+    req.url = `/api${normalized}${qs}`;
+  }
+  next();
+});
+
+bridge.use(backendApp);
+
+const handler = serverless(bridge, {
   binary: [
     "application/pdf",
     "application/octet-stream",
