@@ -7,8 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 
 const entry = path.join(root, "server/vercel-handler.ts");
-// Must be api/index.js (not .cjs) so Vercel serves it at /api
-const outfile = path.join(root, "api/index.js");
+// Catch-all: handles /api, /api/auth/login, etc. (api/index.js only handles /api → 405 on POST subpaths)
+const outfile = path.join(root, "api/[...path].js");
 const prismaClientDir = path.join(root, "node_modules/.prisma/client");
 
 if (!fs.existsSync(path.join(prismaClientDir, "index.js"))) {
@@ -16,6 +16,16 @@ if (!fs.existsSync(path.join(prismaClientDir, "index.js"))) {
     "Prisma client not generated. Run: prisma generate --schema=./backend/prisma/schema.prisma"
   );
   process.exit(1);
+}
+
+for (const stale of [
+  "api/index.js",
+  "api/index.js.map",
+  "api/index.cjs",
+  "api/index.cjs.map",
+]) {
+  const file = path.join(root, stale);
+  if (fs.existsSync(file)) fs.unlinkSync(file);
 }
 
 /** Resolve @prisma/client and .prisma/client to the generated client entry. */
@@ -50,7 +60,11 @@ await esbuild.build({
     js: 'const _importMetaUrl=require("url").pathToFileURL(__filename).href;',
   },
   footer: {
-    js: "module.exports = module.exports.default ?? module.exports;",
+    js: `
+const __handler = module.exports.default ?? module.exports;
+module.exports = __handler;
+module.exports.default = __handler;
+`,
   },
   logLevel: "info",
 });

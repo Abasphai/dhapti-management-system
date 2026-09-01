@@ -1,7 +1,7 @@
 /**
  * API client — always same-origin `/api`:
  * - Local: Vite proxy → Express :4000
- * - Production: Vercel serverless (`api/index.js`)
+ * - Production: Vercel serverless (`api/[...path].js`)
  */
 
 /** Same-origin API base. Production always uses relative `/api`. */
