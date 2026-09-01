@@ -19,10 +19,16 @@ function createPrismaClient(): PrismaClient {
     );
   }
 
+  const needsSsl =
+    process.env.NODE_ENV === "production" ||
+    /supabase\.com|sslmode=require|ssl=true/i.test(connectionString);
+
   const pool =
     globalForPrisma.pgPool ??
     new Pool({
       connectionString,
+      // Supabase / managed Postgres on Vercel require TLS
+      ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
       // Serverless: one connection per warm instance (use Supabase pooler URL :6543)
       max: 1,
       idleTimeoutMillis: 20_000,

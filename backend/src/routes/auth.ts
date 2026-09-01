@@ -245,11 +245,25 @@ authRouter.post("/login", async (req, res) => {
     `[auth/login] Success email=${normalizedEmail} role=${user.role}`
   );
 
-  const token = signToken({
-    sub: user.id,
-    role: user.role,
-    email: user.email,
-  });
+  let token: string;
+  try {
+    token = signToken({
+      sub: user.id,
+      role: user.role,
+      email: user.email,
+    });
+  } catch (tokenErr) {
+    console.error("[auth/login] JWT sign error:", tokenErr);
+    if (tokenErr instanceof Error && tokenErr.stack) {
+      console.error(tokenErr.stack);
+    }
+    return sendError(
+      res,
+      500,
+      "INTERNAL_ERROR",
+      "Server authentication is misconfigured (JWT_SECRET)."
+    );
+  }
 
   const profile =
     user.role === "STUDENT"
