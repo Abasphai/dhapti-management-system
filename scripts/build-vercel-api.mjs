@@ -7,7 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 
 const entry = path.join(root, "server/vercel-handler.ts");
-const outfile = path.join(root, "api/index.cjs");
+// Must be api/index.js (not .cjs) so Vercel serves it at /api
+const outfile = path.join(root, "api/index.js");
 const prismaClientDir = path.join(root, "node_modules/.prisma/client");
 
 if (!fs.existsSync(path.join(prismaClientDir, "index.js"))) {
@@ -39,10 +40,8 @@ await esbuild.build({
   format: "cjs",
   outfile,
   sourcemap: true,
-  // Bundle every dependency — no runtime require() of node_modules
   packages: "bundle",
   plugins: [prismaResolvePlugin],
-  // Node built-ins only
   external: [],
   define: {
     "import.meta.url": "_importMetaUrl",

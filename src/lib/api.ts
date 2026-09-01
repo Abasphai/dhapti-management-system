@@ -1,14 +1,35 @@
 /**
  * API client — always same-origin `/api`:
  * - Local: Vite proxy → Express :4000
- * - Production: Vercel serverless (`api/[[...path]].ts`)
+ * - Production: Vercel serverless (`api/index.js`)
  */
 
-/** Relative same-origin API. Set VITE_API_URL=/api in Vercel build env. */
-const configured = String(import.meta.env.VITE_API_URL ?? "")
-  .trim()
-  .replace(/\/$/, "");
-export const API_BASE_URL = configured || "/api";
+/** Same-origin API base. Production always uses relative `/api`. */
+function resolveApiBaseUrl(): string {
+  const configured = String(import.meta.env.VITE_API_URL ?? "")
+    .trim()
+    .replace(/\/$/, "");
+
+  if (import.meta.env.PROD) {
+    if (configured.startsWith("/") && !configured.startsWith("//")) {
+      return configured;
+    }
+    return "/api";
+  }
+
+  if (
+    configured.startsWith("http://localhost") ||
+    configured.startsWith("http://127.0.0.1") ||
+    configured.startsWith("https://localhost") ||
+    configured.startsWith("https://127.0.0.1")
+  ) {
+    return configured;
+  }
+
+  return configured || "/api";
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 const REQUEST_TIMEOUT_MS = 30_000;
 

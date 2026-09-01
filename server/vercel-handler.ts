@@ -4,14 +4,26 @@ import backendApp from "../backend/src/app.ts";
 
 const app = express();
 
-// Vercel rewrite → /api may strip prefix; Express routes use /api/*
+/** Restore full /api path after Vercel rewrite → /api (strips subpath). */
 app.use((req, _res, next) => {
+  const headerPath =
+    (req.headers["x-vercel-original-path"] as string | undefined) ??
+    (req.headers["x-invoke-path"] as string | undefined);
+
+  if (headerPath?.startsWith("/api")) {
+    const qIndex = req.url?.indexOf("?") ?? -1;
+    const qs = qIndex === -1 ? "" : (req.url ?? "").slice(qIndex);
+    req.url = `${headerPath}${qs}`;
+    next();
+    return;
+  }
+
   const url = req.url ?? "/";
   if (!url.startsWith("/api")) {
     const qIndex = url.indexOf("?");
-    const path = qIndex === -1 ? url : url.slice(0, qIndex);
+    const pathPart = qIndex === -1 ? url : url.slice(0, qIndex);
     const qs = qIndex === -1 ? "" : url.slice(qIndex);
-    const normalized = path.startsWith("/") ? path : `/${path}`;
+    const normalized = pathPart.startsWith("/") ? pathPart : `/${pathPart}`;
     req.url = `/api${normalized}${qs}`;
   }
   next();
